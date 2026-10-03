@@ -167,28 +167,28 @@
     }
   </style>
 </head>
-<body class="flex flex-col justify-between min-h-screen p-3 sm:p-5">
+<body class="flex flex-col justify-between min-h-screen p-2.5 sm:p-4 md:p-6">
 
   <!-- TOP BAR: VENUE BRANDING + ROUND TARGET & PRIZE -->
-  <header class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-amber-500/25 pb-3">
+  <header class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-amber-500/25 pb-3 w-full max-w-7xl mx-auto">
     
     <!-- Left: Venue Identity -->
     <div class="flex items-center gap-3">
-      <div class="relative w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 flex items-center justify-center p-0.5 shadow-xl shrink-0 cursor-pointer group" onclick="openVenueModal()" title="Customize Venue Name">
+      <div class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 flex items-center justify-center p-0.5 shadow-xl shrink-0 cursor-pointer group" onclick="openVenueModal()" title="Customize Venue Name">
         <div class="w-full h-full bg-gray-950 rounded-full flex items-center justify-center">
-          <i class="fa-solid fa-beer-mug-empty text-amber-400 text-xl group-hover:scale-110 transition"></i>
+          <i class="fa-solid fa-beer-mug-empty text-amber-400 text-lg sm:text-xl group-hover:scale-110 transition"></i>
         </div>
       </div>
       <div>
         <div class="flex items-center gap-2 cursor-pointer" onclick="openVenueModal()">
-          <h1 id="headerVenueTitle" class="text-xl sm:text-2xl font-black font-display tracking-tight bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent uppercase leading-none">
+          <h1 id="headerVenueTitle" class="text-lg sm:text-xl md:text-2xl font-black font-display tracking-tight bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent uppercase leading-none">
             BEERBOX PUB & GRILL
           </h1>
-          <span id="headerVenueBranch" class="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <span id="headerVenueBranch" class="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
             Midrand
           </span>
         </div>
-        <p class="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+        <p class="text-[11px] sm:text-xs text-gray-400 flex items-center gap-2 mt-0.5">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           Live Pub Bingo with <strong id="headerDjTitle" class="text-gray-200">TJ Entertainment</strong>
           <span>•</span>
@@ -198,44 +198,44 @@
     </div>
 
     <!-- Center / Right: Round Goal, Prize, and Stats -->
-    <div class="flex flex-wrap items-center justify-between md:justify-end gap-2.5">
+    <div class="flex flex-wrap items-center justify-between md:justify-end gap-2 sm:gap-2.5">
       
       <!-- Round Target & Prize Card (Clickable to advance round) -->
-      <div onclick="advanceRoundStage()" class="glass-panel px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-amber-500/40 flex items-center gap-3 shadow-lg cursor-pointer hover:border-amber-400 transition group" title="Click to Advance Round Stage">
-        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base group-hover:scale-110 transition">
+      <div onclick="advanceRoundStage()" class="glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-amber-500/40 flex items-center gap-2.5 sm:gap-3 shadow-lg cursor-pointer hover:border-amber-400 transition group flex-1 sm:flex-initial" title="Click to Advance Round Stage">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm sm:text-base group-hover:scale-110 transition shrink-0">
           <i class="fa-solid fa-trophy"></i>
         </div>
         <div>
-          <div class="flex items-center gap-1.5 text-[9px] uppercase font-bold text-gray-400 tracking-wider">
+          <div class="flex items-center gap-1.5 text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
             <span>TARGET GOAL</span>
             <span class="text-amber-400 text-[8px]">(Click to cycle)</span>
           </div>
-          <div id="headerStageGoal" class="text-sm sm:text-base font-black font-display text-amber-300 leading-tight">
+          <div id="headerStageGoal" class="text-xs sm:text-sm md:text-base font-black font-display text-amber-300 leading-tight">
             STAGE 1: ANY 1 LINE
           </div>
-          <div id="headerStagePrize" class="text-[10px] sm:text-[11px] text-emerald-400 font-bold">
+          <div id="headerStagePrize" class="text-[9px] sm:text-[10px] md:text-[11px] text-emerald-400 font-bold">
             Round of Shooters / Draft
           </div>
         </div>
       </div>
 
       <!-- Balls Counter Badge -->
-      <div class="glass-panel px-3.5 py-2 rounded-2xl border border-gray-800 flex items-center gap-2 text-xs shadow-lg">
+      <div class="glass-panel px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-gray-800 flex items-center gap-2 text-xs shadow-lg shrink-0">
         <i class="fa-solid fa-calculator text-amber-400"></i>
         <div>
-          <div class="text-[9px] text-gray-400 uppercase font-bold">CALL STATS</div>
-          <div class="font-mono font-black text-amber-300">
-            <span id="ballsCalledCount">0</span> / <span id="totalBallsCount">75</span> <span class="text-gray-400 text-[10px]" id="ballsRemainingCount">(75 left)</span>
+          <div class="text-[8px] sm:text-[9px] text-gray-400 uppercase font-bold">CALL STATS</div>
+          <div class="font-mono font-black text-amber-300 text-xs sm:text-sm">
+            <span id="ballsCalledCount">0</span> / <span id="totalBallsCount">75</span> <span class="text-gray-400 text-[9px] sm:text-[10px]" id="ballsRemainingCount">(75 left)</span>
           </div>
         </div>
       </div>
 
       <!-- Quick Action Buttons: Cheatsheet & Fullscreen -->
-      <div class="flex items-center gap-1.5">
-        <button onclick="openCheatsheetModal()" class="p-2 bg-gray-900/90 hover:bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Keyboard Shortcuts Cheatsheet">
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="openCheatsheetModal()" class="p-2 sm:p-2.5 bg-gray-900/90 hover:bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Keyboard Shortcuts Cheatsheet">
           <i class="fa-solid fa-keyboard"></i>
         </button>
-        <button onclick="toggleFullscreen()" class="p-2 bg-gray-900/90 hover:bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Toggle Fullscreen Projector (F11)">
+        <button onclick="toggleFullscreen()" class="p-2 sm:p-2.5 bg-gray-900/90 hover:bg-gray-800 text-gray-300 hover:text-amber-400 border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Toggle Fullscreen Projector (F11)">
           <i class="fa-solid fa-expand"></i>
         </button>
       </div>
@@ -244,13 +244,13 @@
   </header>
 
   <!-- MAIN STADIUM ARENA -->
-  <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 my-auto py-3 items-center flex-1">
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 my-auto py-3 sm:py-4 items-center flex-1 w-full max-w-7xl mx-auto">
     
     <!-- LEFT HALF (5 COLS): 3D LOTTERY CAGE, HERO BALL, & HISTORY TRAY -->
-    <div class="lg:col-span-5 flex flex-col items-center justify-center text-center space-y-4">
+    <div class="lg:col-span-5 flex flex-col items-center justify-center text-center space-y-3.5 sm:space-y-4 w-full">
       
       <!-- 3D ANIMATED LOTTERY BASKET (CANVAS PHYSICS + CRANK + CHUTE) -->
-      <div id="tumblerCard" class="relative w-full max-w-[340px] sm:max-w-[380px] h-48 sm:h-52 rounded-3xl border-2 border-amber-500/40 glass-panel p-2.5 flex flex-col items-center justify-between overflow-hidden shadow-2xl group cursor-pointer" onclick="spinBasketManually()" title="Click to Spin Hopper [Key: S]">
+      <div id="tumblerCard" class="relative w-full max-w-[340px] sm:max-w-[380px] h-44 sm:h-50 rounded-3xl border-2 border-amber-500/40 glass-panel p-2.5 flex flex-col items-center justify-between overflow-hidden shadow-2xl group cursor-pointer" onclick="spinBasketManually()" title="Click to Spin Hopper [Key: S]">
         
         <!-- Header: Live Badge & RPM Speed Indicator -->
         <div class="w-full flex items-center justify-between px-2 pt-0.5 z-10 text-[9px] font-black uppercase tracking-widest text-amber-400/80">
@@ -281,30 +281,30 @@
       </div>
 
       <!-- HERO CALLED BALL DISPLAY (GIANT GLOWING SPHERE) -->
-      <div id="heroBallContainer" class="flex flex-col items-center">
+      <div id="heroBallContainer" class="flex flex-col items-center w-full">
         
         <!-- 3D Glossy Sphere -->
-        <div id="heroBallSphere" class="relative w-56 h-56 sm:w-68 sm:h-68 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-yellow-700 p-2.5 shadow-2xl flex items-center justify-center glow-gold">
+        <div id="heroBallSphere" class="relative w-48 h-48 min-[400px]:w-56 min-[400px]:h-56 sm:w-64 sm:h-64 md:w-68 md:h-68 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-yellow-700 p-2 sm:p-2.5 shadow-2xl flex items-center justify-center glow-gold">
           
-          <div class="w-full h-full rounded-full bg-gradient-to-br from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center border-8 border-amber-300/40 relative overflow-hidden">
+          <div class="w-full h-full rounded-full bg-gradient-to-br from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center border-4 sm:border-8 border-amber-300/40 relative overflow-hidden">
             <!-- Gloss highlight reflection -->
-            <div class="absolute top-2 left-6 right-6 h-12 bg-gradient-to-b from-white/35 to-transparent rounded-full pointer-events-none"></div>
+            <div class="absolute top-2 left-6 right-6 h-10 sm:h-12 bg-gradient-to-b from-white/35 to-transparent rounded-full pointer-events-none"></div>
 
-            <span id="heroBallLetter" class="text-2xl sm:text-3xl font-black tracking-widest text-amber-400 uppercase leading-none mb-0.5 drop-shadow-md">
+            <span id="heroBallLetter" class="text-xl sm:text-2xl md:text-3xl font-black tracking-widest text-amber-400 uppercase leading-none mb-0.5 drop-shadow-md">
               READY
             </span>
-            <span id="heroBallNumber" class="text-7xl sm:text-8xl font-black font-display text-white tracking-tight leading-none drop-shadow-2xl">
+            <span id="heroBallNumber" class="text-6xl min-[400px]:text-7xl sm:text-8xl font-black font-display text-white tracking-tight leading-none drop-shadow-2xl">
               --
             </span>
-            <span id="heroBallCall" class="text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-widest mt-1.5 px-3 py-0.5 bg-amber-500/20 rounded-full border border-amber-500/30">
+            <span id="heroBallCall" class="text-[11px] sm:text-xs md:text-sm font-extrabold text-amber-300 uppercase tracking-widest mt-1 sm:mt-1.5 px-2.5 sm:px-3 py-0.5 bg-amber-500/20 rounded-full border border-amber-500/30">
               Eyes Down
             </span>
           </div>
         </div>
 
         <!-- Clue / Song Title Display -->
-        <div class="mt-3 max-w-md">
-          <div id="heroBallTitle" class="text-xl sm:text-2xl font-black font-display text-amber-300 leading-tight">
+        <div class="mt-2.5 sm:mt-3 max-w-md px-2">
+          <div id="heroBallTitle" class="text-lg sm:text-xl md:text-2xl font-black font-display text-amber-300 leading-tight">
             Pub Bingo Night
           </div>
           <div id="heroBallSubtitle" class="text-xs sm:text-sm text-gray-300 font-medium mt-0.5">
@@ -325,12 +325,12 @@
       </div>
 
       <!-- RECENT CALLS ROLLING TRAY (LAST 5 BALLS) -->
-      <div class="w-full max-w-md glass-panel rounded-2xl p-2.5 border border-gray-800 shadow-lg">
+      <div class="w-full max-w-md glass-panel rounded-2xl p-2.5 sm:p-3 border border-gray-800 shadow-lg">
         <div class="flex items-center justify-between text-[10px] text-gray-400 uppercase font-black tracking-wider mb-1.5 px-1">
           <span>RECENT CALLS TRAY</span>
           <span class="text-amber-400">Previous Balls</span>
         </div>
-        <div id="recentTrayStrip" class="flex items-center justify-center gap-2 min-h-[48px]">
+        <div id="recentTrayStrip" class="flex items-center justify-center gap-2 min-h-[44px] sm:min-h-[48px] overflow-x-auto py-0.5">
           <span class="text-xs text-gray-500 italic">No previous calls yet</span>
         </div>
       </div>
@@ -338,10 +338,10 @@
     </div>
 
     <!-- RIGHT HALF (7 COLS): THE MASTER CALL MATRIX -->
-    <div class="lg:col-span-7 flex flex-col justify-center">
-      <div class="glass-panel rounded-3xl p-3 sm:p-5 border-2 border-amber-500/30 shadow-2xl">
+    <div class="lg:col-span-7 flex flex-col justify-center w-full">
+      <div class="glass-panel rounded-3xl p-2.5 sm:p-4 md:p-5 border-2 border-amber-500/30 shadow-2xl overflow-hidden">
         
-        <div class="flex items-center justify-between border-b border-gray-800/80 pb-2.5 mb-3">
+        <div class="flex flex-wrap items-center justify-between border-b border-gray-800/80 pb-2.5 mb-2.5 sm:mb-3 gap-2">
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-table-cells text-amber-400 text-sm"></i>
             <h2 class="text-xs sm:text-sm font-black font-display text-gray-200 uppercase tracking-wider">
@@ -362,7 +362,7 @@
         </div>
 
         <!-- Master Board Container (Populated by JS for 75 or 90 ball) -->
-        <div id="masterBoardContainer" class="space-y-1.5 sm:space-y-2">
+        <div id="masterBoardContainer" class="space-y-1 sm:space-y-1.5 md:space-y-2">
           <!-- Dynamically populated -->
         </div>
 
@@ -372,23 +372,23 @@
   </main>
 
   <!-- BOTTOM BAR: DJ CONTROLS & SOUNDBOARD -->
-  <footer id="djControlDeck" class="transition-all duration-300 border-t border-amber-500/25 pt-3">
-    <div class="flex flex-wrap items-center justify-between gap-2.5">
+  <footer id="djControlDeck" class="transition-all duration-300 border-t border-amber-500/25 pt-3 mt-auto w-full max-w-7xl mx-auto">
+    <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
       
-      <!-- Primary Action: DRAW NEXT BALL -->
-      <div class="flex items-center gap-2">
-        <button id="drawNextBtn" onclick="drawNextBall()" class="px-5 py-3 sm:px-7 sm:py-3.5 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-gray-950 font-display font-black text-sm sm:text-lg uppercase tracking-wider rounded-2xl shadow-xl active:scale-95 transition flex items-center gap-2.5 group">
+      <!-- Primary Action: DRAW NEXT BALL & Auto-Caller -->
+      <div class="flex items-center justify-center sm:justify-start gap-2 w-full lg:w-auto">
+        <button id="drawNextBtn" onclick="drawNextBall()" class="px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-gray-950 font-display font-black text-sm sm:text-base uppercase tracking-wider rounded-2xl shadow-xl active:scale-95 transition flex items-center gap-2 group shrink-0">
           <i class="fa-solid fa-play text-gray-950 group-hover:scale-125 transition"></i>
           <span>DRAW BALL</span>
           <span class="text-[10px] bg-gray-950/20 px-1.5 py-0.5 rounded font-mono font-bold text-gray-900">[SPACE]</span>
         </button>
 
         <!-- Auto-Caller Toggle -->
-        <button id="autoCallBtn" onclick="toggleAutoCaller()" class="px-3.5 py-3 bg-gray-900/90 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition">
+        <button id="autoCallBtn" onclick="toggleAutoCaller()" class="px-3 py-2.5 bg-gray-900/90 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition shrink-0">
           <i id="autoCallIcon" class="fa-solid fa-stopwatch text-amber-400"></i>
           <span id="autoCallLabel">Auto: OFF</span>
         </button>
-        <select id="autoCallSpeedSelect" onchange="changeAutoCallSpeed(this.value)" class="bg-gray-900 border border-gray-800 text-gray-300 text-xs rounded-xl px-2 py-2.5 focus:outline-none focus:border-amber-400">
+        <select id="autoCallSpeedSelect" onchange="changeAutoCallSpeed(this.value)" class="bg-gray-900 border border-gray-800 text-gray-300 text-xs rounded-xl px-2 py-2 focus:outline-none focus:border-amber-400 shrink-0">
           <option value="6">6s</option>
           <option value="8">8s</option>
           <option value="10" selected>10s</option>
@@ -398,63 +398,63 @@
       </div>
 
       <!-- DJ Soundboard Quick Bar -->
-      <div class="flex items-center bg-gray-900/90 border border-gray-800 rounded-2xl p-1 gap-1 shadow-md">
-        <button onclick="playSFX('airhorn')" class="px-2.5 py-2 hover:bg-amber-500/20 text-amber-400 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="DJ Airhorn Blast [H]">
+      <div class="flex items-center justify-center bg-gray-900/90 border border-gray-800 rounded-2xl p-1 gap-1 shadow-md w-full sm:w-auto overflow-x-auto">
+        <button onclick="playSFX('airhorn')" class="px-2.5 py-1.5 sm:px-3 sm:py-2 hover:bg-amber-500/20 text-amber-400 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="DJ Airhorn Blast [H]">
           <i class="fa-solid fa-bullhorn text-xs"></i>
-          <span class="hidden sm:inline">Horn</span>
+          <span>Horn</span>
         </button>
-        <button onclick="playSFX('drumroll')" class="px-2.5 py-2 hover:bg-amber-500/20 text-yellow-300 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="Suspense Drumroll [D]">
+        <button onclick="playSFX('drumroll')" class="px-2.5 py-1.5 sm:px-3 sm:py-2 hover:bg-amber-500/20 text-yellow-300 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="Suspense Drumroll [D]">
           <i class="fa-solid fa-drum text-xs"></i>
-          <span class="hidden sm:inline">Roll</span>
+          <span>Roll</span>
         </button>
-        <button onclick="playSFX('pop')" class="px-2.5 py-2 hover:bg-amber-500/20 text-emerald-400 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="Ball Chime">
+        <button onclick="playSFX('pop')" class="px-2.5 py-1.5 sm:px-3 sm:py-2 hover:bg-amber-500/20 text-emerald-400 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="Ball Chime">
           <i class="fa-solid fa-bell text-xs"></i>
-          <span class="hidden sm:inline">Chime</span>
+          <span>Chime</span>
         </button>
-        <button onclick="playSFX('wrong')" class="px-2.5 py-2 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="Wrong Buzzer">
+        <button onclick="playSFX('wrong')" class="px-2.5 py-1.5 sm:px-3 sm:py-2 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-90" title="Wrong Buzzer">
           <i class="fa-solid fa-triangle-exclamation text-xs"></i>
-          <span class="hidden sm:inline">Wrong</span>
+          <span>Wrong</span>
         </button>
       </div>
 
       <!-- Game Stage & Celebration Triggers -->
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center justify-center lg:justify-end gap-1.5 sm:gap-2 w-full lg:w-auto">
         <!-- Winner Celebration Trigger -->
-        <button onclick="triggerWinnerCelebration()" class="px-3.5 py-3 bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-display font-black text-xs uppercase tracking-wider rounded-2xl shadow-xl active:scale-95 transition flex items-center gap-1.5" title="Trigger Winner Celebration [W]">
+        <button onclick="triggerWinnerCelebration()" class="px-3 py-2 bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-display font-black text-xs uppercase tracking-wider rounded-xl shadow-xl active:scale-95 transition flex items-center gap-1.5" title="Trigger Winner Celebration [W]">
           <i class="fa-solid fa-trophy text-yellow-300"></i>
           <span>WINNER!</span>
         </button>
 
         <!-- Game Set Selector -->
-        <select id="gameSetSelect" onchange="changeGameSet(this.value)" class="bg-gray-900 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl px-2.5 py-2.5 focus:outline-none focus:border-amber-400">
+        <select id="gameSetSelect" onchange="changeGameSet(this.value)" class="bg-gray-900 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-amber-400 max-w-[140px] sm:max-w-[170px] truncate">
           <!-- Populated by JS -->
         </select>
 
         <!-- Verify Patron Ticket Modal -->
-        <button onclick="openVerifyModal()" class="px-3 py-2.5 bg-gray-900 hover:bg-emerald-950 border border-emerald-500/40 text-emerald-400 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition" title="Verify Ticket [V]">
+        <button onclick="openVerifyModal()" class="px-2.5 py-2 bg-gray-900 hover:bg-emerald-950 border border-emerald-500/40 text-emerald-400 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition" title="Verify Ticket [V]">
           <i class="fa-solid fa-clipboard-check text-emerald-400"></i>
-          <span class="hidden sm:inline">Verify [V]</span>
+          <span class="hidden min-[400px]:inline">Verify [V]</span>
         </button>
 
         <!-- Open Dedicated TV Display Window -->
-        <button onclick="openTvWindow()" class="px-3 py-2.5 bg-gray-900 hover:bg-amber-950 border border-amber-500/40 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition" title="Open Dedicated TV Projector Window [T]">
+        <button onclick="openTvWindow()" class="px-2.5 py-2 bg-gray-900 hover:bg-amber-950 border border-amber-500/40 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition" title="Open Dedicated TV Projector Window [T]">
           <i class="fa-solid fa-tv text-amber-400"></i>
-          <span class="hidden sm:inline">TV View [T]</span>
+          <span class="hidden min-[400px]:inline">TV View [T]</span>
         </button>
 
         <!-- Print Paper Cards Modal -->
-        <button onclick="openPrintModal()" class="px-3 py-2.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition" title="Print Paper Cards [P]">
+        <button onclick="openPrintModal()" class="px-2.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition" title="Print Paper Cards [P]">
           <i class="fa-solid fa-print"></i>
-          <span class="hidden sm:inline">Print Cards</span>
+          <span class="hidden min-[400px]:inline">Print</span>
         </button>
 
         <!-- Reset Game -->
-        <button onclick="resetGameConfirm()" class="p-2.5 bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-400 border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Reset Current Game [R]">
+        <button onclick="resetGameConfirm()" class="p-2 bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-400 border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Reset Current Game [R]">
           <i class="fa-solid fa-arrow-rotate-left"></i>
         </button>
 
         <!-- Toggle Controls Hide -->
-        <button onclick="toggleControlBar()" class="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Hide/Show Controls Bar [C]">
+        <button onclick="toggleControlBar()" class="p-2 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 rounded-xl text-xs active:scale-95 transition" title="Hide/Show Controls Bar [C]">
           <i id="hideControlsIcon" class="fa-solid fa-chevron-down"></i>
         </button>
       </div>
@@ -1601,18 +1601,18 @@
 
       letters.forEach(letter => {
         const row = document.createElement('div');
-        row.className = 'flex items-center gap-1.5 sm:gap-2';
+        row.className = 'flex items-center gap-1 sm:gap-2';
 
         // Column Letter Badge
         const colScheme = COLUMN_COLORS[letter];
         const badge = document.createElement('div');
-        badge.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br ${colScheme.bg} text-white font-display font-black text-sm flex items-center justify-center shadow-md shrink-0`;
+        badge.className = `w-6 h-6 min-[400px]:w-7 min-[400px]:h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br ${colScheme.bg} text-white font-display font-black text-xs sm:text-sm flex items-center justify-center shadow-md shrink-0`;
         badge.textContent = letter;
         row.appendChild(badge);
 
         // 15 Cells for this letter
         const cellsWrap = document.createElement('div');
-        cellsWrap.className = 'grid grid-cols-15 gap-1 flex-1';
+        cellsWrap.className = 'grid grid-cols-15 gap-0.5 sm:gap-1 flex-1';
 
         const itemsForLetter = set.items.filter(it => it.col === letter);
         itemsForLetter.forEach(item => {
@@ -1622,12 +1622,12 @@
           const cell = document.createElement('button');
           cell.id = `matrix-cell-${item.id}`;
           cell.onclick = () => toggleManualCell(item.id);
-          cell.className = `aspect-square rounded-lg font-display font-black text-[11px] sm:text-xs transition flex items-center justify-center ${
+          cell.className = `aspect-square rounded sm:rounded-lg font-display font-black text-[9px] min-[400px]:text-[10px] sm:text-xs p-0 transition flex items-center justify-center leading-none ${
             isLatest
-              ? `bg-amber-400 text-gray-950 font-black glow-beacon scale-105 z-10`
+              ? `bg-amber-400 text-gray-950 font-black glow-beacon scale-110 z-10 shadow-lg`
               : isCalled
               ? `bg-gradient-to-br ${colScheme.bg} text-white shadow-sm font-bold`
-              : 'bg-gray-900/80 text-gray-600 hover:text-gray-400 hover:bg-gray-800'
+              : 'bg-gray-900/80 text-gray-500 hover:text-gray-300 hover:bg-gray-800 border border-gray-800/60'
           }`;
           cell.textContent = item.id;
           cell.title = `Ball ${item.id}: ${item.title}`;
@@ -1642,7 +1642,7 @@
     function render90BallMatrix(container) {
       const set = getCurrentSet();
       const grid = document.createElement('div');
-      grid.className = 'grid grid-cols-10 gap-1';
+      grid.className = 'grid grid-cols-10 gap-0.5 sm:gap-1.5';
 
       for (let i = 1; i <= 90; i++) {
         const isCalled = calledBallIds.has(i);
@@ -1651,12 +1651,12 @@
         const cell = document.createElement('button');
         cell.id = `matrix-cell-${i}`;
         cell.onclick = () => toggleManualCell(i);
-        cell.className = `aspect-square rounded-lg font-display font-black text-[11px] sm:text-xs transition flex items-center justify-center ${
+        cell.className = `aspect-square rounded sm:rounded-lg font-display font-black text-[10px] sm:text-xs transition flex items-center justify-center leading-none ${
           isLatest
-            ? 'bg-amber-400 text-gray-950 font-black glow-beacon scale-105 z-10'
+            ? 'bg-amber-400 text-gray-950 font-black glow-beacon scale-110 z-10 shadow-lg'
             : isCalled
             ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-sm'
-            : 'bg-gray-900/80 text-gray-600 hover:text-gray-400 hover:bg-gray-800'
+            : 'bg-gray-900/80 text-gray-500 hover:text-gray-300 hover:bg-gray-800 border border-gray-800/60'
         }`;
         cell.textContent = i;
         grid.appendChild(cell);
