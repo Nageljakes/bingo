@@ -448,7 +448,7 @@
 
           </div>
 
-          <!-- Caller Action Deck: Draw Next + Auto-Call + TTS + Reset -->
+          <!-- Caller Action Deck: Draw Next + Auto-Call + Reset -->
           <div class="border-t border-gray-800/80 pt-3 mt-2 flex flex-wrap items-center justify-between gap-2">
             
             <div class="flex items-center gap-2 flex-wrap">
@@ -473,12 +473,6 @@
                   <option value="30">30s</option>
                 </select>
               </div>
-
-              <!-- Voice Caller Toggle (SpeechSynthesis) -->
-              <button id="ttsToggleBtn" onclick="toggleVoiceCaller()" class="px-3 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition" title="Toggle Voice Announcements">
-                <i id="ttsIcon" class="fa-solid fa-volume-high text-amber-400"></i>
-                <span id="ttsLabel" class="hidden sm:inline">Voice: ON</span>
-              </button>
             </div>
 
             <!-- Reset / New Round Button -->
@@ -1179,7 +1173,6 @@
     let activePattern = 'line';
     let autoCallerTimer = null;
     let autoCallInterval = 10;
-    let isVoiceCallerEnabled = true;
     let isBigScreenActive = false;
 
     // Player Card State
@@ -1407,11 +1400,6 @@
       if (isPlayerAutoDaub) {
         checkAndApplyAutoDaub(pick.id);
       }
-
-      // Voice Caller TTS
-      if (isVoiceCallerEnabled) {
-        speakBallCall(pick);
-      }
     }
 
     function updateDrawnBallUI(item) {
@@ -1467,38 +1455,6 @@
 
       strip.innerHTML = html;
       if (tvStrip) tvStrip.innerHTML = html;
-    }
-
-    // ==========================================================
-    // VOICE CALLER ENGINE (TTS)
-    // ==========================================================
-    function toggleVoiceCaller() {
-      isVoiceCallerEnabled = !isVoiceCallerEnabled;
-      const label = document.getElementById('ttsLabel');
-      const icon = document.getElementById('ttsIcon');
-      if (label) label.textContent = isVoiceCallerEnabled ? 'Voice: ON' : 'Voice: OFF';
-      if (icon) icon.className = isVoiceCallerEnabled ? 'fa-solid fa-volume-high text-amber-400' : 'fa-solid fa-volume-xmark text-gray-500';
-    }
-
-    function speakBallCall(item) {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-
-      let phrase = '';
-      if (item.col && item.id) {
-        phrase = `${item.col} ${item.id}. `;
-      }
-      if (item.title) {
-        phrase += `${item.title}. `;
-      }
-      if (item.subtitle && item.subtitle !== item.title) {
-        phrase += item.subtitle;
-      }
-
-      const utter = new SpeechSynthesisUtterance(phrase);
-      utter.rate = 1.05;
-      utter.pitch = 1.0;
-      window.speechSynthesis.speak(utter);
     }
 
     // ==========================================================

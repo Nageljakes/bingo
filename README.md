@@ -7,7 +7,7 @@ Live URL: https://nageljakes.github.io/bingo/
 ## Highlights & Features
 
 - Dual Host & Player Modes:
-  - Host Caller Deck with animated 3D ball hopper, voice speech synthesis announcements, auto-call timer, and instant ticket claim verifier.
+  - Host Caller Deck with animated 3D ball hopper, auto-call timer, master board matrix, and instant ticket claim verifier.
   - Digital Interactive Player Card with authentic colorful ink daubers, auto-daub toggle, and instant winning pattern alerts.
   - Big Screen / TV Presentation Mode optimized for pub TVs, displays, and projectors.
 
