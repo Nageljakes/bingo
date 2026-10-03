@@ -59,6 +59,9 @@
       display: grid !important;
       grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
     }
+    .tv-display-mode #djControlDeck {
+      display: none !important;
+    }
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -708,83 +711,125 @@
   <!-- APPLICATION JAVASCRIPT ENGINE -->
   <script>
     // Dual-Display / Spectator Engine
-    const isTvSpectator = window.IS_TV_MODE || (new URLSearchParams(window.location.search).get('tv') === '1');
+    const isTvSpectator = !!(window.IS_TV_MODE || (new URLSearchParams(window.location.search).get('tv') === '1'));
+    window.isTvSpectator = isTvSpectator;
+    if (isTvSpectator) {
+      document.documentElement.classList.add('tv-display-mode');
+    }
     const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('dj_pub_bingo_bus') : null;
+    let lastHandledSyncTimestamp = 0;
 
     function broadcastSync(type, payload = {}) {
-      if (syncChannel && !isTvSpectator) {
-        try {
-          syncChannel.postMessage({ type, payload, timestamp: Date.now() });
-        } catch (e) {}
+      if (isTvSpectator) return;
+      const eventData = { type, payload, timestamp: Date.now() };
+
+      if (syncChannel) {
+        try { syncChannel.postMessage(eventData); } catch (e) {}
+      }
+      try {
+        localStorage.setItem('dj_bingo_live_bus', JSON.stringify(eventData));
+      } catch (e) {}
+    }
+
+    function handleIncomingSync(msg) {
+      if (!msg || !msg.type || !msg.timestamp) return;
+      if (msg.timestamp <= lastHandledSyncTimestamp) return;
+      lastHandledSyncTimestamp = msg.timestamp;
+
+      // DJ Deck handles TV state request
+      if (msg.type === 'REQUEST_STATE' && !isTvSpectator) {
+        broadcastSync('SYNC_FULL_STATE', {
+          calledIds: Array.from(calledBallIds),
+          callHistory: callHistory.slice(0, 15),
+          latestItem: latestCalledItem,
+          currentSetIndex: currentSetIndex,
+          currentStage: currentStage,
+          venueConfig: venueConfig
+        });
+        return;
+      }
+
+      // TV Spectator reacts to DJ events
+      if (isTvSpectator) {
+        if (msg.type === 'DRAW_BALL' && msg.payload && msg.payload.item) {
+          const item = msg.payload.item;
+          calledBallIds.add(item.id);
+          callHistory.unshift(item);
+          latestCalledItem = item;
+
+          // Update board cells and stats immediately
+          updateMasterBoardCell(item.id);
+          updateCallStats();
+          renderRecentTray();
+
+          // Animate hopper & hero ball
+          triggerHopperBallDraw(item, () => {
+            playSFX('pop');
+            renderHeroBall(item);
+          });
+        } else if (msg.type === 'SPIN_BASKET') {
+          spinBasket(950, 0.24);
+        } else if (msg.type === 'STAGE_CHANGE' && msg.payload) {
+          currentStage = msg.payload.stage || 1;
+          updateStageDisplay();
+          playSFX('pop');
+        } else if (msg.type === 'SET_CHANGE' && msg.payload) {
+          currentSetIndex = msg.payload.setIndex || 0;
+          resetGame(false);
+          updateSetUI();
+          renderMasterBoard();
+        } else if (msg.type === 'TRIGGER_WINNER') {
+          triggerWinnerCelebration();
+        } else if (msg.type === 'CLOSE_WINNER') {
+          closeWinnerModal();
+        } else if (msg.type === 'RESET_GAME') {
+          resetGame(false);
+        } else if (msg.type === 'SYNC_FULL_STATE' && msg.payload) {
+          const p = msg.payload;
+          if (p.venueConfig) venueConfig = Object.assign(venueConfig, p.venueConfig);
+          if (p.currentSetIndex !== undefined) currentSetIndex = p.currentSetIndex;
+          if (p.currentStage !== undefined) currentStage = p.currentStage;
+          if (p.calledIds) calledBallIds = new Set(p.calledIds);
+          if (p.callHistory) callHistory = p.callHistory;
+          updateVenueUI();
+          updateSetUI();
+          updateStageDisplay();
+          renderMasterBoard();
+          if (p.latestItem) {
+            latestCalledItem = p.latestItem;
+            renderHeroBall(p.latestItem);
+          }
+          renderRecentTray();
+          updateCallStats();
+        }
       }
     }
 
     if (syncChannel) {
-      syncChannel.onmessage = (event) => {
-        const msg = event.data;
-        if (!msg || !msg.type) return;
+      syncChannel.onmessage = (event) => handleIncomingSync(event.data);
+    }
 
-        // DJ Deck handles TV state request
-        if (msg.type === 'REQUEST_STATE' && !isTvSpectator) {
-          broadcastSync('SYNC_FULL_STATE', {
-            calledIds: Array.from(calledBallIds),
-            latestItem: latestCalledItem,
-            currentSetIndex: currentSetIndex,
-            currentStage: currentStage,
-            venueConfig: venueConfig
-          });
-          return;
-        }
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'dj_bingo_live_bus' && e.newValue) {
+        try {
+          handleIncomingSync(JSON.parse(e.newValue));
+        } catch (err) {}
+      }
+    });
 
-        // TV Spectator reacts to DJ events
-        if (isTvSpectator) {
-          if (msg.type === 'DRAW_BALL' && msg.payload && msg.payload.item) {
-            const item = msg.payload.item;
-            calledBallIds.add(item.id);
-            callHistory.unshift(item);
-            latestCalledItem = item;
-            triggerHopperBallDraw(item, () => {
-              playSFX('pop');
-              renderHeroBall(item);
-              renderRecentTray();
-              updateMasterBoardCell(item.id);
-              updateCallStats();
-            });
-          } else if (msg.type === 'SPIN_BASKET') {
-            spinBasket(950, 0.24);
-          } else if (msg.type === 'STAGE_CHANGE' && msg.payload) {
-            currentStage = msg.payload.stage || 1;
-            updateStageDisplay();
-            playSFX('pop');
-          } else if (msg.type === 'SET_CHANGE' && msg.payload) {
-            currentSetIndex = msg.payload.setIndex || 0;
-            resetGame(false);
-            updateSetUI();
-            renderMasterBoard();
-          } else if (msg.type === 'TRIGGER_WINNER') {
-            triggerWinnerCelebration();
-          } else if (msg.type === 'CLOSE_WINNER') {
-            closeWinnerModal();
-          } else if (msg.type === 'RESET_GAME') {
-            resetGame(false);
-          } else if (msg.type === 'SYNC_FULL_STATE' && msg.payload) {
-            const p = msg.payload;
-            if (p.venueConfig) venueConfig = Object.assign(venueConfig, p.venueConfig);
-            if (p.currentSetIndex !== undefined) currentSetIndex = p.currentSetIndex;
-            if (p.currentStage !== undefined) currentStage = p.currentStage;
-            if (p.calledIds) calledBallIds = new Set(p.calledIds);
-            updateVenueUI();
-            updateSetUI();
-            updateStageDisplay();
-            renderMasterBoard();
-            if (p.latestItem) {
-              latestCalledItem = p.latestItem;
-              renderHeroBall(p.latestItem);
-            }
-            updateCallStats();
-          }
+    function requestTvStateSync() {
+      const sendReq = () => {
+        const req = { type: 'REQUEST_STATE', timestamp: Date.now() };
+        if (syncChannel) {
+          try { syncChannel.postMessage(req); } catch (e) {}
         }
+        try {
+          localStorage.setItem('dj_bingo_live_bus', JSON.stringify(req));
+        } catch (e) {}
       };
+      sendReq();
+      setTimeout(sendReq, 400);
+      setTimeout(sendReq, 1200);
     }
 
     // State
@@ -797,6 +842,11 @@
     let autoCallInterval = 10;
     let currentStage = 1;
     let isControlsHidden = false;
+
+    // Window state helpers for diagnostic and spectator integrations
+    window.getCalledBallIds = () => calledBallIds;
+    window.getLatestCalledItem = () => latestCalledItem;
+    window.getCurrentStage = () => currentStage;
 
     // Default Venue Settings
     let venueConfig = {
@@ -824,15 +874,27 @@
       renderMasterBoard();
       updateStageDisplay();
       updateCallStats();
+      if (latestCalledItem) {
+        renderHeroBall(latestCalledItem);
+      }
+      renderRecentTray();
       initTumblerEngine();
 
       if (isTvSpectator) {
         const deck = document.getElementById('djControlDeck');
         if (deck) deck.style.display = 'none';
         document.title = 'DJ Pub Bingo - Big Screen TV Display';
-        if (syncChannel) {
-          syncChannel.postMessage({ type: 'REQUEST_STATE', timestamp: Date.now() });
-        }
+        requestTvStateSync();
+      } else {
+        // Broadcast current state in case TV display was loaded first
+        broadcastSync('SYNC_FULL_STATE', {
+          calledIds: Array.from(calledBallIds),
+          callHistory: callHistory.slice(0, 15),
+          latestItem: latestCalledItem,
+          currentSetIndex: currentSetIndex,
+          currentStage: currentStage,
+          venueConfig: venueConfig
+        });
       }
 
       // Keyboard shortcuts
@@ -876,6 +938,20 @@
         if (savedVenue) venueConfig = Object.assign(venueConfig, JSON.parse(savedVenue));
         const savedSetIdx = localStorage.getItem('bb_bingo_set_idx');
         if (savedSetIdx !== null) currentSetIndex = parseInt(savedSetIdx, 10) || 0;
+        const savedStage = localStorage.getItem('bb_bingo_stage');
+        if (savedStage !== null) currentStage = parseInt(savedStage, 10) || 1;
+        const savedCalled = localStorage.getItem('bb_bingo_called_ids');
+        if (savedCalled) {
+          calledBallIds = new Set(JSON.parse(savedCalled));
+        }
+        const savedHistory = localStorage.getItem('bb_bingo_call_history');
+        if (savedHistory) {
+          callHistory = JSON.parse(savedHistory);
+        }
+        const savedLatest = localStorage.getItem('bb_bingo_latest_ball');
+        if (savedLatest) {
+          latestCalledItem = JSON.parse(savedLatest);
+        }
       } catch (e) {}
     }
 
@@ -883,11 +959,23 @@
       try {
         localStorage.setItem('bb_bingo_venue_config', JSON.stringify(venueConfig));
         localStorage.setItem('bb_bingo_set_idx', currentSetIndex.toString());
+        localStorage.setItem('bb_bingo_stage', currentStage.toString());
+        localStorage.setItem('bb_bingo_called_ids', JSON.stringify(Array.from(calledBallIds)));
+        localStorage.setItem('bb_bingo_call_history', JSON.stringify(callHistory.slice(0, 15)));
+        if (latestCalledItem) {
+          localStorage.setItem('bb_bingo_latest_ball', JSON.stringify(latestCalledItem));
+        } else {
+          localStorage.removeItem('bb_bingo_latest_ball');
+        }
       } catch (e) {}
     }
 
     function initVenueData() {
-      if (window.BINGO_VENUES && window.BINGO_VENUES.length > 0) {
+      let hasSavedVenue = false;
+      try {
+        hasSavedVenue = !!localStorage.getItem('bb_bingo_venue_config');
+      } catch (e) {}
+      if (!hasSavedVenue && window.BINGO_VENUES && window.BINGO_VENUES.length > 0) {
         currentVenue = window.BINGO_VENUES[0];
         venueConfig.title = currentVenue.venueName;
         venueConfig.branch = currentVenue.branch;
@@ -930,6 +1018,7 @@
       resetGame(false);
       updateSetUI();
       renderMasterBoard();
+      broadcastSync('SET_CHANGE', { setIndex: currentSetIndex });
     }
 
     function getCurrentSet() {
@@ -1045,6 +1134,7 @@
 
     function spinBasketManually() {
       spinBasket(950, 0.24);
+      broadcastSync('SPIN_BASKET');
     }
 
     function triggerHopperBallDraw(item, onComplete) {
@@ -1056,6 +1146,14 @@
         chuteLabel.innerHTML = '<span class="text-amber-300 animate-pulse flex items-center gap-1"><i class="fa-solid fa-bolt text-[8px]"></i> EJECTING...</span>';
       }
 
+      let completed = false;
+      const safeComplete = () => {
+        if (!completed) {
+          completed = true;
+          if (typeof onComplete === 'function') onComplete();
+        }
+      };
+
       // 2. Start chute ejection at peak spin
       setTimeout(() => {
         basketState.isEjecting = true;
@@ -1065,8 +1163,11 @@
           col: item.col || 'N',
           hex: (COLUMN_COLORS[item.col] && COLUMN_COLORS[item.col].hex) || '#F59E0B'
         };
-        basketState.onEjectComplete = onComplete;
+        basketState.onEjectComplete = safeComplete;
       }, 280);
+
+      // Safety fallback in case animation throttles when tab is unfocused
+      setTimeout(safeComplete, 1200);
     }
 
     function spawnSparks(count = 15) {
@@ -1513,15 +1614,25 @@
       callHistory.unshift(pick);
       latestCalledItem = pick;
 
+      // Save state to local storage
+      saveStorageData();
+
+      // Broadcast immediately to TV projector screen
+      broadcastSync('DRAW_BALL', {
+        item: pick,
+        calledIds: Array.from(calledBallIds)
+      });
+
+      // Update cells and stats right away
+      updateMasterBoardCell(pick.id);
+      updateCallStats();
+      renderRecentTray();
+
       // Tumbler spin and ball ejection animation
       triggerHopperBallDraw(pick, () => {
         // Play Bell Pop Chime
         playSFX('pop');
-
         renderHeroBall(pick);
-        renderRecentTray();
-        updateMasterBoardCell(pick.id);
-        updateCallStats();
       });
     }
 
@@ -1718,6 +1829,15 @@
       renderMasterBoard();
       renderRecentTray();
       updateCallStats();
+      saveStorageData();
+      broadcastSync('SYNC_FULL_STATE', {
+        calledIds: Array.from(calledBallIds),
+        callHistory: callHistory.slice(0, 15),
+        latestItem: latestCalledItem,
+        currentSetIndex: currentSetIndex,
+        currentStage: currentStage,
+        venueConfig: venueConfig
+      });
     }
 
     function updateCallStats() {
@@ -1748,7 +1868,9 @@
       currentStage++;
       if (currentStage > 3) currentStage = 1;
       updateStageDisplay();
+      saveStorageData();
       playSFX('pop');
+      broadcastSync('STAGE_CHANGE', { stage: currentStage });
     }
 
     function hasPrizeOffered(prizeStr) {
@@ -1838,11 +1960,13 @@
 
       const modal = document.getElementById('winnerModal');
       if (modal) modal.classList.remove('hidden');
+      broadcastSync('TRIGGER_WINNER');
     }
 
     function closeWinnerModal() {
       const modal = document.getElementById('winnerModal');
       if (modal) modal.classList.add('hidden');
+      broadcastSync('CLOSE_WINNER');
     }
 
     function launchConfettiExplosion() {
@@ -1863,11 +1987,11 @@
     // ==========================================================
     function resetGameConfirm() {
       if (confirm('Reset the current bingo game? All called balls will be cleared.')) {
-        resetGame(true);
+        resetGame(true, true);
       }
     }
 
-    function resetGame(notify) {
+    function resetGame(notify, broadcast = false) {
       if (autoCallerTimer) toggleAutoCaller();
       calledBallIds.clear();
       callHistory = [];
@@ -1889,8 +2013,12 @@
       renderMasterBoard();
       renderRecentTray();
       updateCallStats();
+      saveStorageData();
 
       if (notify) playSFX('pop');
+      if (broadcast) {
+        broadcastSync('RESET_GAME');
+      }
     }
 
     // ==========================================================
