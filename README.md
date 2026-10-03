@@ -1,25 +1,47 @@
-# TJ Entertainment @ Beerbox Midrand - Live Pub Bingo Night
+# DJ Pub Bingo - Big Screen Projector & Number Generator
 
-Interactive live pub and musical bingo web application hosted on GitHub Pages, inspired by the Beerbox Pub Quiz night.
+Cinematic live pub bingo projector screen and number generator for DJs, pub hosts, and venues. Built specifically for high-energy pub and grill bingo nights where players play on physical paper cards.
 
-Live URL: https://nageljakes.github.io/bingo/
+Live Web App URL: https://nageljakes.github.io/bingo/
+GitHub Repository: https://github.com/Nageljakes/bingo
 
 ## Highlights & Features
 
-- Dual Host & Player Modes:
-  - DJ Master Deck with animated 3D ball hopper, auto-call timer, master board matrix, and instant ticket claim verifier.
-  - Detached HDMI Pub TV Display (tv.html) with zero-latency BroadcastChannel & localStorage real-time sync for big screens and projectors.
-  - Digital Interactive Player Card with authentic colorful ink daubers, auto-daub toggle, and instant winning pattern alerts.
-  - Mobile QR Code Player Join: Patrons scan the TV screen or DJ deck to instantly open their digital card on their phones.
+- Cinematic Big Screen TV & Projector Aesthetic:
+  - Deep dark pub background with amber beer glow and high-contrast typography.
+  - Designed for 1080p, 4K TVs, and projectors with Fullscreen support (F11 / F).
+  - Hideable DJ control bar (press C) for a 100% clean spectator presentation display.
 
-- DJ Music Bingo Cue Deck:
-  - Guessing Mode: DJ can hide song titles on pub TV screens so patrons sing along and guess before the DJ reveals the track.
-  - 1-Click Track Copy & Quick Search to Spotify and YouTube Music.
-  - Soundboard Suite: DJ airhorns, victory fanfares, suspense drumrolls, pop chimes, and wrong buzzers synthesized with Web Audio API.
+- 3D Animated Ball Tumbler & Reveal:
+  - Realistic rotating wireframe lottery cage with bouncing numbered balls and mechanical sound FX.
+  - Dramatic ball chute reveal: 3D glossy spheres color-coded by column (B: Blue, I: Green, N: Gold, G: Orange, O: Purple).
+  - Massive legible numbers and authentic rhyming pub calls (e.g. "Two Little Ducks - 22!", "Legs Eleven - 11!").
+  - Rolling Recent Balls Tray shows the previous 5 balls drawn so players can quickly catch up.
 
-- 3-Tier Progressive Rounds & Venue Manager:
-  - Stage 1 (1 Line), Stage 2 (2 Lines), Stage 3 (Full House / Blackout) with customizable bar tabs, shooter rounds, and venue vouchers.
-  - Pre-configured venue profiles (Beerbox Midrand, Thirsty Fox Fourways, Hudsons Hazelwood, Capital Craft Menlo Park) plus custom venue editor.
+- Master Calling Board Matrix (1-75 & 1-90):
+  - Crystal-clear 1-75 grid with B-I-N-G-O letter badges, plus traditional 90-ball layout.
+  - Called numbers glow vibrantly in their column color.
+  - Latest called ball pulses with an amber beacon ring for instant recognition across the room.
+  - Click any cell to manually toggle if needed.
+
+- Built-in Paper Card Print Center:
+  - Generate and print physical paper cards directly from the browser:
+    - 2 Cards per A4 Page
+    - 4 Cards per A4 Page
+    - Host Master Tracker Sheet
+  - Pre-generated Microsoft Word (.docx) card sheets included in repository.
+
+- Keyboard-Driven DJ Controls:
+  - SPACEBAR: Draw next ball
+  - A: Toggle Auto-Caller (6s, 8s, 10s, 15s, 20s)
+  - H: DJ Airhorn blast
+  - D: Suspense Drumroll
+  - W: Stadium Winner celebration with confetti
+  - C: Hide / Show DJ bottom control bar
+  - F / F11: Toggle Fullscreen
+  - R: Reset current game
+  - P: Open Print Paper Cards dialog
+  - ?: Cheatsheet popup
 
 - 10 Rotating Game Sets:
   - Set 1: Classic 75-Ball Pub Bingo (Authentic British & South African rhyming calls)
@@ -33,28 +55,5 @@ Live URL: https://nageljakes.github.io/bingo/
   - Set 9: Pub Quiz Trivia Bingo
   - Set 10: Golden 70s Disco Fever & Motown
 
-- A4 Print Center & Word Document Generator:
-  - Printable player cards (2-up and 4-up) and host master tracker sheets in Microsoft Word (.docx) and in-browser print formats.
-
-## Serverless Multi-Device Architecture (Zero Cost, No VM Link)
-
-- 100% Static GitHub Pages Hosting:
-  - Runs completely in client browsers with zero server setup, zero backend runtimes, and zero link or dependency on any private VM or paid server.
-
-- Global Real-time Pub/Sub over Secure WebSockets (WSS):
-  - Uses public community MQTT WebSocket brokers (EMQX Global and HiveMQ Public) with automatic broker failover.
-  - DJ laptop publishes one lightweight message (<100 bytes) per ball draw, and the cloud broker multiplexes it across 100+ connected patron phones in under 50ms.
-  - Patrons can be on different mobile data networks (Vodacom, MTN, Telkom) or pub Wi-Fi with client isolation. No shared physical network required.
-
-- Hybrid Zero-Latency Local Fallback:
-  - Dual-layer BroadcastChannel and localStorage listeners provide sub-millisecond sync for same-machine HDMI secondary displays even if internet connection drops.
-
-- Room Code Session System:
-  - DJ selects or generates a room code (e.g. BEERBOX, FOX24, or random 5-character code).
-  - Patrons scan QR codes on pub TVs or tables to immediately join the live session.
-  - Wireless Pub TV mode (tv.html?room=CODE) allows venue smart TVs to run detached displays without HDMI cables.
-
-- Live Features:
-  - Live Player Presence: Real-time counter of active players connected to the room.
-  - Late-Join State Sync: Players joining mid-game automatically catch up with all previously drawn balls and active round rules.
-  - Remote BINGO Buzzer: Patrons tap "SHOUT BINGO!" on their phone to trigger an instant audio alert and 1-click ticket verification on the DJ master deck and TV screen.
+- Web Audio Sound Effects (Zero External Files):
+  - DJ Airhorns, snare drumrolls, ball pop chimes, mechanical tumbler rumble, victory fanfares, and wrong buzzers synthesized entirely with the Web Audio API.
