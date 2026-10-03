@@ -71,30 +71,28 @@
       100% { transform: scale(1.08); filter: brightness(1.3); }
     }
 
-    /* 3D Ball Hopper Tumbler Cage Animation */
-    .tumbler-cage {
-      perspective: 800px;
+    /* 3D Ball Hopper Basket & Canvas Effects */
+    #tumblerCard {
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
     }
-    @keyframes tumblerRotate {
-      0% { transform: rotateY(0deg) rotateX(15deg); }
-      100% { transform: rotateY(360deg) rotateX(15deg); }
+    #tumblerCard:hover {
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);
     }
-    .tumbler-spinning {
-      animation: tumblerRotate 1.2s linear infinite;
+    #tumblerCard.cage-vibrating {
+      animation: cageJitter 0.08s infinite alternate;
     }
-    .tumbler-idle {
-      animation: tumblerRotate 12s linear infinite;
+    @keyframes cageJitter {
+      0% { transform: translate(-1.5px, 0.8px) rotate(-0.4deg); }
+      100% { transform: translate(1.5px, -0.8px) rotate(0.4deg); }
     }
-
-    /* Bouncing Balls inside Cage */
-    @keyframes ballTumble1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(25px, -30px); } }
-    @keyframes ballTumble2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-30px, 20px); } }
-    @keyframes ballTumble3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, 30px); } }
-    @keyframes ballTumble4 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-25px, -25px); } }
-    .tumble-ball-1 { animation: ballTumble1 1.4s ease-in-out infinite alternate; }
-    .tumble-ball-2 { animation: ballTumble2 1.1s ease-in-out infinite alternate; }
-    .tumble-ball-3 { animation: ballTumble3 1.6s ease-in-out infinite alternate; }
-    .tumble-ball-4 { animation: ballTumble4 1.3s ease-in-out infinite alternate; }
+    @keyframes glintSweep {
+      0% { transform: translateX(-120%) rotate(25deg); opacity: 0; }
+      40% { opacity: 0.65; }
+      100% { transform: translateX(200%) rotate(25deg); opacity: 0; }
+    }
+    .animate-glint {
+      animation: glintSweep 1.1s ease-in-out forwards;
+    }
 
     /* Hero Ball Reveal Animation */
     @keyframes ballShootOut {
@@ -234,33 +232,35 @@
     <!-- LEFT HALF (5 COLS): 3D LOTTERY CAGE, HERO BALL, & HISTORY TRAY -->
     <div class="lg:col-span-5 flex flex-col items-center justify-center text-center space-y-4">
       
-      <!-- 3D ANIMATED LOTTERY DRUM CAGE -->
-      <div class="relative w-56 h-36 sm:w-64 sm:h-40 rounded-3xl border-2 border-amber-500/30 glass-panel p-3 flex items-center justify-center overflow-hidden shadow-2xl tumbler-cage">
-        <!-- Drum Metal Axle & Supports -->
-        <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-amber-600 via-amber-300 to-amber-600 opacity-60"></div>
-        <div class="absolute left-1 top-4 bottom-4 w-1.5 bg-gray-800 border-r border-amber-500/40 rounded-full"></div>
-        <div class="absolute right-1 top-4 bottom-4 w-1.5 bg-gray-800 border-l border-amber-500/40 rounded-full"></div>
+      <!-- 3D ANIMATED LOTTERY BASKET (CANVAS PHYSICS + CRANK + CHUTE) -->
+      <div id="tumblerCard" class="relative w-full max-w-[340px] sm:max-w-[380px] h-48 sm:h-52 rounded-3xl border-2 border-amber-500/40 glass-panel p-2.5 flex flex-col items-center justify-between overflow-hidden shadow-2xl group cursor-pointer" onclick="spinBasketManually()" title="Click to Spin Hopper [Key: S]">
         
-        <!-- Rotating Drum Wireframe Structure -->
-        <div id="tumblerDrum" class="tumbler-idle w-44 h-28 sm:w-52 sm:h-32 border-2 border-dashed border-amber-400/50 rounded-full relative flex items-center justify-center">
-          
-          <!-- Tumbling Balls Inside Cage -->
-          <div class="tumble-ball-1 absolute w-6 h-6 rounded-full bg-blue-600 border border-white/60 shadow-md flex items-center justify-center text-[8px] font-black">7</div>
-          <div class="tumble-ball-2 absolute w-6 h-6 rounded-full bg-emerald-600 border border-white/60 shadow-md flex items-center justify-center text-[8px] font-black">24</div>
-          <div class="tumble-ball-3 absolute w-6 h-6 rounded-full bg-amber-600 border border-white/60 shadow-md flex items-center justify-center text-[8px] font-black">39</div>
-          <div class="tumble-ball-4 absolute w-6 h-6 rounded-full bg-orange-600 border border-white/60 shadow-md flex items-center justify-center text-[8px] font-black">52</div>
-          <div class="tumble-ball-2 absolute w-6 h-6 rounded-full bg-purple-600 border border-white/60 shadow-md flex items-center justify-center text-[8px] font-black">68</div>
-          <div class="tumble-ball-1 absolute w-6 h-6 rounded-full bg-red-600 border border-white/60 shadow-md flex items-center justify-center text-[8px] font-black">15</div>
-
-          <!-- Center Spinner Rotor -->
-          <div class="w-8 h-8 rounded-full bg-amber-500/30 border border-amber-400 flex items-center justify-center text-amber-300 text-xs">
-            <i class="fa-solid fa-arrows-spin"></i>
-          </div>
+        <!-- Header: Live Badge & RPM Speed Indicator -->
+        <div class="w-full flex items-center justify-between px-2 pt-0.5 z-10 text-[9px] font-black uppercase tracking-widest text-amber-400/80">
+          <span class="flex items-center gap-1.5">
+            <span id="hopperPulseDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>3D LOTTERY BASKET</span>
+          </span>
+          <span id="hopperSpeedBadge" class="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[8px] px-2 py-0.5 rounded-full font-mono transition">
+            IDLE • 12 RPM
+          </span>
         </div>
 
-        <div class="absolute bottom-1.5 text-[9px] uppercase tracking-widest text-amber-400/70 font-black">
-          3D LOTTERY HOPPER
+        <!-- The Canvas Rendering Engine -->
+        <canvas id="tumblerCanvas" class="w-full h-full max-h-[145px] block relative z-0"></canvas>
+
+        <!-- Bottom Chute & Action Bar -->
+        <div class="w-full flex items-center justify-between px-2 pb-0.5 z-10 text-[8px] font-bold text-gray-400 uppercase tracking-wider">
+          <span class="text-amber-400/80 group-hover:text-amber-300 transition flex items-center gap-1">
+            <i class="fa-solid fa-rotate text-[9px] group-hover:rotate-180 transition duration-500"></i> Click to Spin [S]
+          </span>
+          <span id="chuteStatusLabel" class="text-emerald-400 font-mono flex items-center gap-1">
+            <i class="fa-solid fa-arrow-down text-[8px]"></i> CHUTE READY
+          </span>
         </div>
+
+        <!-- Subtle golden lens sweep on fast spin -->
+        <div id="basketGlintOverlay" class="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-400/15 to-transparent pointer-events-none opacity-0 transition-opacity duration-300"></div>
       </div>
 
       <!-- HERO CALLED BALL DISPLAY (GIANT GLOWING SPHERE) -->
@@ -578,6 +578,10 @@
           <kbd class="px-2 py-0.5 bg-gray-800 text-amber-300 font-mono rounded">SPACEBAR</kbd>
         </div>
         <div class="flex justify-between py-1 border-b border-gray-900">
+          <span class="text-gray-400">Spin Hopper Basket</span>
+          <kbd class="px-2 py-0.5 bg-gray-800 text-amber-300 font-mono rounded">S</kbd>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-900">
           <span class="text-gray-400">Toggle Auto-Caller</span>
           <kbd class="px-2 py-0.5 bg-gray-800 text-amber-300 font-mono rounded">A</kbd>
         </div>
@@ -600,6 +604,10 @@
         <div class="flex justify-between py-1 border-b border-gray-900">
           <span class="text-gray-400">Hide/Show DJ Controls</span>
           <kbd class="px-2 py-0.5 bg-gray-800 text-amber-300 font-mono rounded">C</kbd>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-900">
+          <span class="text-gray-400">Print Paper Cards</span>
+          <kbd class="px-2 py-0.5 bg-gray-800 text-amber-300 font-mono rounded">P</kbd>
         </div>
         <div class="flex justify-between py-1">
           <span class="text-gray-400">Reset Game</span>
@@ -652,6 +660,7 @@
       renderMasterBoard();
       updateStageDisplay();
       updateCallStats();
+      initTumblerEngine();
 
       // Keyboard shortcuts
       window.addEventListener('keydown', (e) => {
@@ -660,6 +669,8 @@
         if (e.code === 'Space') {
           e.preventDefault();
           drawNextBall();
+        } else if (e.key === 's' || e.key === 'S') {
+          spinBasketManually();
         } else if (e.key === 'a' || e.key === 'A') {
           toggleAutoCaller();
         } else if (e.key === 'h' || e.key === 'H') {
@@ -759,6 +770,554 @@
     }
 
     // ==========================================================
+    // 3D LOTTERY BASKET & TUMBLER PHYSICS ENGINE
+    // ==========================================================
+    let tumblerCanvas = null;
+    let tumblerCtx = null;
+    let tumblerAnimFrame = null;
+    
+    // Basket State
+    const basketState = {
+      angle: 0,
+      speed: 0.018,
+      targetSpeed: 0.018,
+      tilt: 0.16, // perspective tilt angle
+      numBars: 20,
+      spinRemainingMs: 0,
+      isEjecting: false,
+      ejectProgress: 0,
+      ejectBall: null,
+      onEjectComplete: null,
+      particles: [],
+      balls: []
+    };
+
+    // Color palette for hopper balls
+    const HOPPER_BALL_COLORS = [
+      { hex: '#3B82F6', shadow: '#1D4ED8', text: '#FFFFFF', col: 'B' },
+      { hex: '#10B981', shadow: '#047857', text: '#FFFFFF', col: 'I' },
+      { hex: '#F59E0B', shadow: '#B45309', text: '#FFFFFF', col: 'N' },
+      { hex: '#EA580C', shadow: '#9A3412', text: '#FFFFFF', col: 'G' },
+      { hex: '#8B5CF6', shadow: '#6D28D9', text: '#FFFFFF', col: 'O' },
+      { hex: '#EC4899', shadow: '#BE185D', text: '#FFFFFF', col: 'B' }
+    ];
+
+    function initTumblerEngine() {
+      tumblerCanvas = document.getElementById('tumblerCanvas');
+      if (!tumblerCanvas) return;
+      tumblerCtx = tumblerCanvas.getContext('2d');
+
+      resizeTumblerCanvas();
+      window.addEventListener('resize', resizeTumblerCanvas);
+
+      // Generate 26 bouncing lottery balls inside cage
+      basketState.balls = [];
+      const numBalls = 26;
+      for (let i = 0; i < numBalls; i++) {
+        const colorObj = HOPPER_BALL_COLORS[i % HOPPER_BALL_COLORS.length];
+        const num = (i * 3 + 4) % 75 + 1;
+        basketState.balls.push({
+          num: num,
+          color: colorObj.hex,
+          shadow: colorObj.shadow,
+          col: colorObj.col,
+          xNorm: (Math.random() - 0.5) * 1.4, // axis drift (-1 to 1)
+          angle: Math.PI * 0.5 + (Math.random() - 0.5) * 1.4, // near bottom
+          distNorm: 0.35 + Math.random() * 0.5, // radial distance (0 to 1)
+          vAngle: 0,
+          vx: 0,
+          radius: 6.5
+        });
+      }
+
+      if (tumblerAnimFrame) cancelAnimationFrame(tumblerAnimFrame);
+      renderTumblerLoop();
+    }
+
+    function resizeTumblerCanvas() {
+      if (!tumblerCanvas) return;
+      const rect = tumblerCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      tumblerCanvas.width = (rect.width || 320) * dpr;
+      tumblerCanvas.height = (rect.height || 140) * dpr;
+      if (tumblerCtx) tumblerCtx.scale(dpr, dpr);
+    }
+
+    function spinBasket(durationMs = 900, targetSpd = 0.28) {
+      basketState.targetSpeed = targetSpd;
+      basketState.spinRemainingMs = durationMs;
+
+      // Sound and visual effects
+      playSFX('tumbler');
+      
+      const card = document.getElementById('tumblerCard');
+      const glint = document.getElementById('basketGlintOverlay');
+      if (card) {
+        card.classList.add('cage-vibrating');
+        setTimeout(() => card && card.classList.remove('cage-vibrating'), durationMs);
+      }
+      if (glint) {
+        glint.classList.remove('animate-glint');
+        void glint.offsetWidth;
+        glint.classList.add('animate-glint');
+      }
+
+      // Spark particles burst
+      spawnSparks(22);
+    }
+
+    function spinBasketManually() {
+      spinBasket(950, 0.24);
+    }
+
+    function triggerHopperBallDraw(item, onComplete) {
+      // 1. High speed spin surge
+      spinBasket(750, 0.28);
+
+      const chuteLabel = document.getElementById('chuteStatusLabel');
+      if (chuteLabel) {
+        chuteLabel.innerHTML = '<span class="text-amber-300 animate-pulse flex items-center gap-1"><i class="fa-solid fa-bolt text-[8px]"></i> EJECTING...</span>';
+      }
+
+      // 2. Start chute ejection at peak spin
+      setTimeout(() => {
+        basketState.isEjecting = true;
+        basketState.ejectProgress = 0;
+        basketState.ejectBall = {
+          num: item.id,
+          col: item.col || 'N',
+          hex: (COLUMN_COLORS[item.col] && COLUMN_COLORS[item.col].hex) || '#F59E0B'
+        };
+        basketState.onEjectComplete = onComplete;
+      }, 280);
+    }
+
+    function spawnSparks(count = 15) {
+      if (!tumblerCanvas) return;
+      const rect = tumblerCanvas.getBoundingClientRect();
+      const w = rect.width || 320;
+      const h = rect.height || 140;
+      const cx = w / 2 - 8;
+      const cy = h / 2 - 2;
+
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 1.2 + Math.random() * 3.5;
+        basketState.particles.push({
+          x: cx + Math.cos(ang) * 40,
+          y: cy + Math.sin(ang) * 35,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 0.5,
+          life: 1.0,
+          decay: 0.02 + Math.random() * 0.03,
+          size: 1.5 + Math.random() * 2.5,
+          color: Math.random() > 0.3 ? '#FDE68A' : '#F59E0B'
+        });
+      }
+    }
+
+    function renderTumblerLoop() {
+      tumblerAnimFrame = requestAnimationFrame(renderTumblerLoop);
+      if (!tumblerCanvas || !tumblerCtx) return;
+
+      const rect = tumblerCanvas.getBoundingClientRect();
+      const w = rect.width || 320;
+      const h = rect.height || 140;
+      const ctx = tumblerCtx;
+      const dpr = window.devicePixelRatio || 1;
+
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, tumblerCanvas.width, tumblerCanvas.height);
+      ctx.scale(dpr, dpr);
+
+      // Physics step
+      const dt = 16.6;
+      if (basketState.spinRemainingMs > 0) {
+        basketState.spinRemainingMs -= dt;
+        if (basketState.spinRemainingMs <= 0) {
+          basketState.targetSpeed = 0.018; // return to idle
+        }
+      }
+
+      // Smooth acceleration / deceleration
+      basketState.speed += (basketState.targetSpeed - basketState.speed) * 0.09;
+      basketState.angle += basketState.speed;
+
+      // Update RPM badge
+      const rpmBadge = document.getElementById('hopperSpeedBadge');
+      if (rpmBadge) {
+        const rpm = Math.round(basketState.speed * 600);
+        if (rpm > 80) {
+          rpmBadge.textContent = 'FAST SPIN • ' + rpm + ' RPM';
+          rpmBadge.className = 'bg-amber-500/30 border border-amber-400 text-amber-200 text-[8px] px-2 py-0.5 rounded-full font-mono transition';
+        } else {
+          rpmBadge.textContent = 'IDLE • ' + rpm + ' RPM';
+          rpmBadge.className = 'bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[8px] px-2 py-0.5 rounded-full font-mono transition';
+        }
+      }
+
+      // Cylinder dimensions
+      const cx = w / 2 - 10;
+      const cy = h / 2 - 2;
+      const R = Math.min(46, h * 0.35);
+      const L = Math.min(125, w * 0.44);
+      const tilt = basketState.tilt;
+
+      // 1. Underglow lighting
+      const underglow = ctx.createRadialGradient(cx, cy + R + 4, 5, cx, cy + R + 4, R * 1.5);
+      underglow.addColorStop(0, 'rgba(245, 158, 11, 0.25)');
+      underglow.addColorStop(1, 'rgba(245, 158, 11, 0)');
+      ctx.fillStyle = underglow;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + R + 6, R * 1.4, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Stand: A-Frame legs (Back half)
+      const leftAxleX = cx - (L / 2) * Math.cos(tilt);
+      const leftAxleY = cy - (L / 2) * Math.sin(tilt);
+      const rightAxleX = cx + (L / 2) * Math.cos(tilt);
+      const rightAxleY = cy + (L / 2) * Math.sin(tilt);
+
+      ctx.strokeStyle = '#27272A';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      // Left leg
+      ctx.beginPath();
+      ctx.moveTo(leftAxleX, leftAxleY);
+      ctx.lineTo(leftAxleX - 20, h - 8);
+      ctx.moveTo(leftAxleX, leftAxleY);
+      ctx.lineTo(leftAxleX + 16, h - 8);
+      ctx.stroke();
+      // Right leg
+      ctx.beginPath();
+      ctx.moveTo(rightAxleX, rightAxleY);
+      ctx.lineTo(rightAxleX - 16, h - 8);
+      ctx.moveTo(rightAxleX, rightAxleY);
+      ctx.lineTo(rightAxleX + 22, h - 8);
+      ctx.stroke();
+
+      // Base crossbar
+      ctx.strokeStyle = '#3F3F46';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(leftAxleX - 24, h - 8);
+      ctx.lineTo(rightAxleX + 26, h - 8);
+      ctx.stroke();
+
+      // 3. Central Axle Shaft
+      const axleGrad = ctx.createLinearGradient(leftAxleX, leftAxleY, rightAxleX, rightAxleY);
+      axleGrad.addColorStop(0, '#94A3B8');
+      axleGrad.addColorStop(0.5, '#E2E8F0');
+      axleGrad.addColorStop(1, '#94A3B8');
+      ctx.strokeStyle = axleGrad;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(leftAxleX - 4, leftAxleY);
+      ctx.lineTo(rightAxleX + 18, rightAxleY);
+      ctx.stroke();
+
+      // 4. Back Wire Bars of Cage (sin < 0)
+      for (let i = 0; i < basketState.numBars; i++) {
+        const theta = basketState.angle + i * (Math.PI * 2 / basketState.numBars);
+        const sinT = Math.sin(theta);
+        const cosT = Math.cos(theta);
+        if (sinT < 0) {
+          const xOff = -sinT * (R * 0.25);
+          const yOff = cosT * R;
+          ctx.strokeStyle = 'rgba(120, 83, 30, 0.45)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(leftAxleX + xOff, leftAxleY + yOff);
+          ctx.lineTo(rightAxleX + xOff, rightAxleY + yOff);
+          ctx.stroke();
+        }
+      }
+
+      // Back half of reinforcing hoops (t = 0, 0.33, 0.66, 1)
+      [0, 0.33, 0.66, 1].forEach(t => {
+        const hx = leftAxleX + (rightAxleX - leftAxleX) * t;
+        const hy = leftAxleY + (rightAxleY - leftAxleY) * t;
+        ctx.strokeStyle = 'rgba(120, 83, 30, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(hx, hy, R * 0.25, R, Math.PI / 2, 0, Math.PI);
+        ctx.stroke();
+      });
+
+      // 5. Tumbling Balls Simulation & Render (Z-Sorted)
+      const ballsToDraw = [];
+      basketState.balls.forEach(b => {
+        // Rotational drag & scoop
+        b.vAngle += basketState.speed * 0.28;
+        // Gravity pulls down (towards PI/2)
+        const grav = Math.cos(b.angle) * 0.05;
+        b.vAngle += grav;
+        b.vAngle *= 0.94;
+        b.angle += b.vAngle;
+
+        // Centrifugal lift at high speed
+        if (basketState.speed > 0.08) {
+          b.distNorm = Math.min(0.88, b.distNorm + 0.04);
+        } else {
+          b.distNorm += (0.45 + Math.random() * 0.35 - b.distNorm) * 0.04;
+        }
+
+        // Slight axial jitter
+        b.xNorm += b.vx;
+        b.vx += (Math.random() - 0.5) * 0.01;
+        b.vx *= 0.92;
+        if (b.xNorm > 0.8) { b.xNorm = 0.8; b.vx = -b.vx; }
+        if (b.xNorm < -0.8) { b.xNorm = -0.8; b.vx = -b.vx; }
+
+        const rDist = b.distNorm * (R - b.radius - 2);
+        const bx = cx + (b.xNorm * (L / 2)) * Math.cos(tilt) - Math.sin(b.angle) * (R * 0.25);
+        const by = cy + (b.xNorm * (L / 2)) * Math.sin(tilt) + Math.cos(b.angle) * rDist;
+        const z = Math.sin(b.angle);
+
+        ballsToDraw.push({ ...b, bx, by, z });
+      });
+
+      // Sort by depth (back to front)
+      ballsToDraw.sort((a, b) => a.z - b.z);
+
+      ballsToDraw.forEach(b => {
+        // Ball drop shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(b.bx + 1, b.by + 2, b.radius, b.radius * 0.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3D Sphere Radial Gradient
+        const ballGrad = ctx.createRadialGradient(
+          b.bx - b.radius * 0.35, b.by - b.radius * 0.35, 1,
+          b.bx, b.by, b.radius
+        );
+        ballGrad.addColorStop(0, '#FFFFFF');
+        ballGrad.addColorStop(0.3, b.color);
+        ballGrad.addColorStop(1, b.shadow);
+
+        ctx.fillStyle = ballGrad;
+        ctx.beginPath();
+        ctx.arc(b.bx, b.by, b.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center white circle for number decal
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.beginPath();
+        ctx.arc(b.bx, b.by, b.radius * 0.52, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mini number text
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 5px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.num.toString(), b.bx, b.by);
+      });
+
+      // 6. Foreground Wire Bars of Cage (sin >= 0)
+      for (let i = 0; i < basketState.numBars; i++) {
+        const theta = basketState.angle + i * (Math.PI * 2 / basketState.numBars);
+        const sinT = Math.sin(theta);
+        const cosT = Math.cos(theta);
+        if (sinT >= 0) {
+          const xOff = -sinT * (R * 0.25);
+          const yOff = cosT * R;
+
+          // Shiny metallic gold gradient
+          const barGrad = ctx.createLinearGradient(leftAxleX + xOff, leftAxleY + yOff, rightAxleX + xOff, rightAxleY + yOff);
+          barGrad.addColorStop(0, '#B45309');
+          barGrad.addColorStop(0.3, '#FDE68A');
+          barGrad.addColorStop(0.5, '#F59E0B');
+          barGrad.addColorStop(0.8, '#FEF3C7');
+          barGrad.addColorStop(1, '#92400E');
+
+          ctx.strokeStyle = barGrad;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          ctx.moveTo(leftAxleX + xOff, leftAxleY + yOff);
+          ctx.lineTo(rightAxleX + xOff, rightAxleY + yOff);
+          ctx.stroke();
+        }
+      }
+
+      // Foreground half of reinforcing hoops (t = 0, 0.33, 0.66, 1)
+      [0, 0.33, 0.66, 1].forEach((t, idx) => {
+        const hx = leftAxleX + (rightAxleX - leftAxleX) * t;
+        const hy = leftAxleY + (rightAxleY - leftAxleY) * t;
+        
+        const rimGrad = ctx.createLinearGradient(hx - 10, hy - R, hx + 10, hy + R);
+        rimGrad.addColorStop(0, '#F59E0B');
+        rimGrad.addColorStop(0.4, '#FEF3C7');
+        rimGrad.addColorStop(0.8, '#D97706');
+        rimGrad.addColorStop(1, '#78350F');
+
+        ctx.strokeStyle = rimGrad;
+        ctx.lineWidth = (idx === 0 || idx === 3) ? 2.8 : 1.8;
+        ctx.beginPath();
+        ctx.ellipse(hx, hy, R * 0.25, R, Math.PI / 2, Math.PI, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // 7. Motion Blur Speed Arcs on Rims (during fast spin)
+      if (basketState.speed > 0.08) {
+        const blurAlpha = Math.min(0.65, (basketState.speed - 0.08) * 3);
+        ctx.strokeStyle = 'rgba(251, 191, 36, ' + blurAlpha + ')';
+        ctx.lineWidth = 3.5;
+        [0, 1].forEach(t => {
+          const hx = leftAxleX + (rightAxleX - leftAxleX) * t;
+          const hy = leftAxleY + (rightAxleY - leftAxleY) * t;
+          ctx.beginPath();
+          ctx.ellipse(hx, hy, R * 0.25 + 1.5, R + 1.5, Math.PI / 2, basketState.angle, basketState.angle + 2.2);
+          ctx.stroke();
+        });
+      }
+
+      // 8. Bearings & Axle End Caps
+      [leftAxleX, rightAxleX].forEach((ax, idx) => {
+        const ay = idx === 0 ? leftAxleY : rightAxleY;
+        const capGrad = ctx.createRadialGradient(ax - 2, ay - 2, 1, ax, ay, 6);
+        capGrad.addColorStop(0, '#FEF3C7');
+        capGrad.addColorStop(0.5, '#F59E0B');
+        capGrad.addColorStop(1, '#78350F');
+        ctx.fillStyle = capGrad;
+        ctx.beginPath();
+        ctx.arc(ax, ay, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // 9. Turning Crank Handle on Right Side
+      const crankHubX = rightAxleX + 10;
+      const crankHubY = rightAxleY;
+      const crankArmLen = 22;
+      const crankKnobX = crankHubX + Math.cos(basketState.angle) * crankArmLen;
+      const crankKnobY = crankHubY + Math.sin(basketState.angle) * (crankArmLen * 0.85);
+
+      // Crank arm metal bar
+      ctx.strokeStyle = '#94A3B8';
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(crankHubX, crankHubY);
+      ctx.lineTo(crankKnobX, crankKnobY);
+      ctx.stroke();
+
+      // Crank handle knob (3D grip with highlight)
+      const knobGrad = ctx.createRadialGradient(crankKnobX - 2, crankKnobY - 2, 1, crankKnobX, crankKnobY, 6);
+      knobGrad.addColorStop(0, '#FEF3C7');
+      knobGrad.addColorStop(0.4, '#D97706');
+      knobGrad.addColorStop(1, '#451A03');
+      ctx.fillStyle = knobGrad;
+      ctx.beginPath();
+      ctx.arc(crankKnobX, crankKnobY, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FEF3C7';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // 10. Chute & Trapdoor at Bottom
+      const chuteX = cx;
+      const chuteY = cy + R;
+      
+      // Wire catch chute rails
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.65)';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(chuteX - 14, chuteY - 4);
+      ctx.quadraticCurveTo(chuteX - 10, chuteY + 16, chuteX - 18, h - 6);
+      ctx.moveTo(chuteX + 14, chuteY - 4);
+      ctx.quadraticCurveTo(chuteX + 10, chuteY + 16, chuteX + 18, h - 6);
+      ctx.stroke();
+
+      // Bottom catch cup
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(chuteX, h - 6, 12, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+
+      // 11. Ejecting Ball Animation down the chute
+      if (basketState.isEjecting && basketState.ejectBall) {
+        basketState.ejectProgress += 0.055;
+        const p = Math.min(1.0, basketState.ejectProgress);
+        
+        // Path from drum bottom down through chute
+        const eX = chuteX + Math.sin(p * Math.PI) * 2;
+        const eY = (chuteY - 2) + p * (h - 10 - chuteY);
+        const eRad = 8.5 + p * 3.5;
+
+        // Glowing golden halo
+        const haloGrad = ctx.createRadialGradient(eX, eY, 2, eX, eY, eRad * 2);
+        haloGrad.addColorStop(0, 'rgba(251, 191, 36, 0.85)');
+        haloGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.4)');
+        haloGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(eX, eY, eRad * 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3D Ejecting Ball
+        const eGrad = ctx.createRadialGradient(eX - eRad * 0.35, eY - eRad * 0.35, 1, eX, eY, eRad);
+        eGrad.addColorStop(0, '#FFFFFF');
+        eGrad.addColorStop(0.3, basketState.ejectBall.hex);
+        eGrad.addColorStop(1, '#000000');
+        ctx.fillStyle = eGrad;
+        ctx.beginPath();
+        ctx.arc(eX, eY, eRad, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center white circle
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(eX, eY, eRad * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ball number
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 7px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(basketState.ejectBall.num.toString(), eX, eY);
+
+        if (p >= 1.0) {
+          basketState.isEjecting = false;
+          const chuteLabel = document.getElementById('chuteStatusLabel');
+          if (chuteLabel) {
+            chuteLabel.innerHTML = '<i class="fa-solid fa-arrow-down text-[8px]"></i> CHUTE READY';
+          }
+          if (typeof basketState.onEjectComplete === 'function') {
+            basketState.onEjectComplete();
+            basketState.onEjectComplete = null;
+          }
+        }
+      }
+
+      // 12. Spark Particles
+      for (let i = basketState.particles.length - 1; i >= 0; i--) {
+        const pt = basketState.particles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life -= pt.decay;
+        if (pt.life <= 0) {
+          basketState.particles.splice(i, 1);
+          continue;
+        }
+        ctx.fillStyle = pt.color;
+        ctx.globalAlpha = pt.life;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size * pt.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+
+      ctx.restore();
+    }
+
+    // ==========================================================
     // DRAW BALL & ANIMATION ENGINE
     // ==========================================================
     function drawNextBall() {
@@ -771,29 +1330,14 @@
         return;
       }
 
-      // Fast Tumbler Spin Animation
-      const drum = document.getElementById('tumblerDrum');
-      if (drum) {
-        drum.classList.remove('tumbler-idle');
-        drum.classList.add('tumbler-spinning');
-      }
-
-      // Mechanical Drumroll SFX
-      playSFX('tumbler');
-
       // Random selection
       const pick = uncalled[Math.floor(Math.random() * uncalled.length)];
       calledBallIds.add(pick.id);
       callHistory.unshift(pick);
       latestCalledItem = pick;
 
-      // Animate Ball Reveal after brief tumbler spin
-      setTimeout(() => {
-        if (drum) {
-          drum.classList.remove('tumbler-spinning');
-          drum.classList.add('tumbler-idle');
-        }
-
+      // Tumbler spin and ball ejection animation
+      triggerHopperBallDraw(pick, () => {
         // Play Bell Pop Chime
         playSFX('pop');
 
@@ -801,7 +1345,7 @@
         renderRecentTray();
         updateMasterBoardCell(pick.id);
         updateCallStats();
-      }, 400);
+      });
     }
 
     function renderHeroBall(item) {
@@ -1422,18 +1966,21 @@
           osc.stop(now + 0.12);
         }
         else if (type === 'tumbler') {
-          // Mechanical tumbling sound
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(120, now);
-          osc.frequency.exponentialRampToValueAtTime(320, now + 0.35);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.35);
+          // Realistic mechanical wire cage spin and rattling bingo ball clatter
+          for (let i = 0; i < 9; i++) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const t = now + i * 0.045;
+            osc.type = i % 2 === 0 ? 'triangle' : 'square';
+            osc.frequency.setValueAtTime(140 + Math.random() * 260, t);
+            osc.frequency.exponentialRampToValueAtTime(60 + Math.random() * 80, t + 0.035);
+            gain.gain.setValueAtTime(0.18 + Math.random() * 0.08, t);
+            gain.gain.linearRampToValueAtTime(0.005, t + 0.035);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.035);
+          }
         }
         else if (type === 'drumroll') {
           // Tension building snare roll
