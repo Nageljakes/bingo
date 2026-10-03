@@ -1511,7 +1511,11 @@
       try {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('mode') === 'player') {
-          switchAppMode('player');
+          const room = urlParams.get('room') || activeRoomCode;
+          const set = urlParams.get('set') || '';
+          const venue = urlParams.get('venue') || '';
+          window.location.replace(`player.html?room=${room}&set=${set}&venue=${venue}`);
+          return;
         }
         if (urlParams.get('set')) {
           const setParam = parseInt(urlParams.get('set'), 10);
@@ -2535,7 +2539,7 @@
       if (!modal || !container) return;
       container.innerHTML = '';
 
-      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&room=${activeRoomCode}&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
+      const targetUrl = window.location.origin + window.location.pathname.replace('index.html', '') + `player.html?room=${activeRoomCode}&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
       
       if (typeof QRCode !== 'undefined') {
         new QRCode(container, {
@@ -2557,7 +2561,7 @@
     }
 
     function copyPlayerLink() {
-      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&room=${activeRoomCode}&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
+      const targetUrl = window.location.origin + window.location.pathname.replace('index.html', '') + `player.html?room=${activeRoomCode}&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
       navigator.clipboard.writeText(targetUrl).then(() => {
         const textEl = document.getElementById('copyPlayerLinkText');
         if (textEl) {
@@ -2770,7 +2774,7 @@
       if (input) input.value = activeRoomCode;
 
       const baseUrl = window.location.origin + window.location.pathname;
-      if (playerPreview) playerPreview.textContent = `${baseUrl}?mode=player&room=${activeRoomCode}`;
+      if (playerPreview) playerPreview.textContent = `${baseUrl.replace('index.html', '')}player.html?room=${activeRoomCode}`;
       if (tvPreview) tvPreview.textContent = `${baseUrl.replace('index.html', '')}tv.html?room=${activeRoomCode}`;
 
       if (modal) modal.classList.remove('hidden');
@@ -2810,8 +2814,8 @@
     }
 
     function copyPlayerLinkFromModal() {
-      const baseUrl = window.location.origin + window.location.pathname;
-      const targetUrl = `${baseUrl}?mode=player&room=${activeRoomCode}`;
+      const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+      const targetUrl = `${baseUrl}player.html?room=${activeRoomCode}`;
       navigator.clipboard.writeText(targetUrl).then(() => {
         alert(`Player link copied: ${targetUrl}`);
       });

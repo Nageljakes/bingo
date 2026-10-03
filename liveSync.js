@@ -260,6 +260,19 @@
         }
 
         sendPayload(type, data = {}) {
+            // Role enforcement: Players cannot broadcast host game events
+            const hostOnlyEvents = [
+                'CALL', 'DRAW_BALL', 'REVEAL', 'REVEAL_TRACK',
+                'ROUND_CHANGE', 'CHANGE_PATTERN', 'CHANGE_SET',
+                'CHANGE_VENUE', 'WINNER', 'BROADCAST_WINNER',
+                'RESET', 'RESET_GAME', 'DISMISS_WINNER'
+            ];
+
+            if (this.role === 'player' && hostOnlyEvents.includes(type)) {
+                console.warn(`[LiveSync Security] Player blocked from broadcasting host event: ${type}`);
+                return;
+            }
+
             const payload = Object.assign({
                 type: type,
                 room: this.roomCode,
@@ -295,6 +308,19 @@
             if (!payload || !payload.type) return;
             if (payload.senderId === this.clientId) return;
             if (payload.room && payload.room !== this.roomCode) return;
+
+            // Security: Inbound game control events must originate from role: 'dj'
+            const hostOnlyEvents = [
+                'CALL', 'DRAW_BALL', 'REVEAL', 'REVEAL_TRACK',
+                'ROUND_CHANGE', 'CHANGE_PATTERN', 'CHANGE_SET',
+                'CHANGE_VENUE', 'WINNER', 'BROADCAST_WINNER',
+                'RESET', 'RESET_GAME', 'DISMISS_WINNER'
+            ];
+
+            if (hostOnlyEvents.includes(payload.type) && payload.role !== 'dj') {
+                console.warn(`[LiveSync Security] Dropping unauthorized ${payload.type} from role: ${payload.role}`);
+                return;
+            }
 
             switch (payload.type) {
                 case 'CALL':

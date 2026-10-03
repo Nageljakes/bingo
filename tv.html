@@ -734,7 +734,7 @@
       if (!container || typeof QRCode === 'undefined') return;
       container.innerHTML = '';
 
-      const targetUrl = window.location.origin + window.location.pathname.replace('tv.html', 'index.html') + `?mode=player&room=${tvRoomCode}&set=${tvActiveSet ? tvActiveSet.id : 1}&venue=${tvCurrentVenue ? tvCurrentVenue.id : 'beerbox_midrand'}`;
+      const targetUrl = window.location.origin + window.location.pathname.replace('tv.html', 'player.html') + `?room=${tvRoomCode}&set=${tvActiveSet ? tvActiveSet.id : 1}&venue=${tvCurrentVenue ? tvCurrentVenue.id : 'beerbox_midrand'}`;
       new QRCode(container, {
         text: targetUrl,
         width: 48,
