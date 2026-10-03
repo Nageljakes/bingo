@@ -35,3 +35,26 @@ Live URL: https://nageljakes.github.io/bingo/
 
 - A4 Print Center & Word Document Generator:
   - Printable player cards (2-up and 4-up) and host master tracker sheets in Microsoft Word (.docx) and in-browser print formats.
+
+## Serverless Multi-Device Architecture (Zero Cost, No VM Link)
+
+- 100% Static GitHub Pages Hosting:
+  - Runs completely in client browsers with zero server setup, zero backend runtimes, and zero link or dependency on any private VM or paid server.
+
+- Global Real-time Pub/Sub over Secure WebSockets (WSS):
+  - Uses public community MQTT WebSocket brokers (EMQX Global and HiveMQ Public) with automatic broker failover.
+  - DJ laptop publishes one lightweight message (<100 bytes) per ball draw, and the cloud broker multiplexes it across 100+ connected patron phones in under 50ms.
+  - Patrons can be on different mobile data networks (Vodacom, MTN, Telkom) or pub Wi-Fi with client isolation. No shared physical network required.
+
+- Hybrid Zero-Latency Local Fallback:
+  - Dual-layer BroadcastChannel and localStorage listeners provide sub-millisecond sync for same-machine HDMI secondary displays even if internet connection drops.
+
+- Room Code Session System:
+  - DJ selects or generates a room code (e.g. BEERBOX, FOX24, or random 5-character code).
+  - Patrons scan QR codes on pub TVs or tables to immediately join the live session.
+  - Wireless Pub TV mode (tv.html?room=CODE) allows venue smart TVs to run detached displays without HDMI cables.
+
+- Live Features:
+  - Live Player Presence: Real-time counter of active players connected to the room.
+  - Late-Join State Sync: Players joining mid-game automatically catch up with all previously drawn balls and active round rules.
+  - Remote BINGO Buzzer: Patrons tap "SHOUT BINGO!" on their phone to trigger an instant audio alert and 1-click ticket verification on the DJ master deck and TV screen.

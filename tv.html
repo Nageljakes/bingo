@@ -16,9 +16,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Venues & Sets -->
+  <!-- Venues, Sets & Serverless LiveSync -->
   <script src="venues.js"></script>
   <script src="bingoSets.js"></script>
+  <script src="paho-mqtt.min.js"></script>
+  <script src="liveSync.js"></script>
 
   <script>
     tailwind.config = {
@@ -172,8 +174,40 @@
         </div>
       </div>
 
+      <!-- Room Code & Connected Players Badge -->
+      <div class="glass-panel px-3.5 py-2 rounded-2xl border border-emerald-500/30 flex items-center gap-2.5 shadow-lg">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <div>
+          <div class="text-[9px] uppercase font-black text-gray-400 tracking-wider">LIVE SESSION ROOM</div>
+          <div class="flex items-center gap-2">
+            <span id="tvRoomCodeBadge" class="text-sm font-mono font-black text-amber-300">ROOM: BEERBOX</span>
+            <span class="text-gray-500">•</span>
+            <span class="text-emerald-400 font-extrabold text-xs flex items-center gap-1">
+              <i class="fa-solid fa-users text-[10px]"></i> <span id="tvPlayersCount">0</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </header>
+
+  <!-- REMOTE BINGO CLAIM TICKER / BANNER (TV DISPLAY) -->
+  <div id="tvClaimBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-2xl w-[92vw] bg-gradient-to-r from-red-950 via-gray-950 to-red-950 border-4 border-red-500 rounded-3xl p-4 shadow-2xl text-center glow-red animate-bounce">
+    <div class="flex items-center justify-center gap-3.5">
+      <div class="w-12 h-12 rounded-2xl bg-red-600/30 text-red-400 flex items-center justify-center text-2xl shrink-0">
+        <i class="fa-solid fa-bullhorn animate-pulse"></i>
+      </div>
+      <div>
+        <div class="text-xs uppercase font-black text-red-400 tracking-widest">REMOTE BINGO CLAIM REGISTERED</div>
+        <div id="tvClaimPlayerName" class="text-xl sm:text-2xl font-black text-white font-display">Player Name</div>
+        <div id="tvClaimDetail" class="text-xs text-amber-300 font-mono">Ticket #BB-1001 (Verifying Numbers with DJ...)</div>
+      </div>
+    </div>
+  </div>
 
   <!-- MAIN DUAL-STAGE ARENA -->
   <main class="grid grid-cols-12 gap-6 my-auto py-3 items-center">
@@ -352,11 +386,14 @@
     let tvCallHistory = [];
     let tvActiveSet = null;
     let tvCurrentVenue = null;
+    let tvRoomCode = 'BEERBOX';
+    let claimBannerTimeout = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       initBroadcastChannel();
       initFallbackStorageListener();
       loadInitialState();
+      initLiveSyncSession();
       initMobileQr();
     });
 
@@ -378,6 +415,79 @@
           } catch (err) {}
         }
       });
+    }
+
+    function initLiveSyncSession() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      const savedRoom = localStorage.getItem('bingo_room_code');
+
+      if (roomParam) {
+        tvRoomCode = roomParam.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      } else if (savedRoom) {
+        tvRoomCode = savedRoom.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      } else if (tvCurrentVenue && tvCurrentVenue.id) {
+        tvRoomCode = tvCurrentVenue.id.toUpperCase().split('_')[0] || 'BEERBOX';
+      }
+
+      const roomBadge = document.getElementById('tvRoomCodeBadge');
+      if (roomBadge) roomBadge.textContent = `ROOM: ${tvRoomCode}`;
+
+      if (typeof LiveSync === 'undefined') {
+        console.warn('[LiveSync] LiveSync engine not available on TV screen');
+        return;
+      }
+
+      LiveSync.init({
+        role: 'tv',
+        roomCode: tvRoomCode,
+
+        onCall: (data) => {
+          handleIncomingMessage(data);
+        },
+
+        onReveal: (data) => {
+          handleIncomingMessage(data);
+        },
+
+        onRoundChange: (data) => {
+          handleIncomingMessage(data);
+        },
+
+        onWinner: (data) => {
+          handleIncomingMessage(data);
+        },
+
+        onReset: (data) => {
+          handleIncomingMessage(data);
+        },
+
+        onClaim: (claim) => {
+          showClaimBanner(claim.playerName, claim.cardId || claim.ticketCode, claim.tier);
+        },
+
+        onPresenceUpdate: (count) => {
+          const playersCountEl = document.getElementById('tvPlayersCount');
+          if (playersCountEl) playersCountEl.textContent = count;
+        }
+      });
+    }
+
+    function showClaimBanner(playerName, ticketCode, tier) {
+      const banner = document.getElementById('tvClaimBanner');
+      const pName = document.getElementById('tvClaimPlayerName');
+      const detail = document.getElementById('tvClaimDetail');
+      if (!banner) return;
+
+      if (pName) pName.textContent = playerName || 'Table Patron';
+      if (detail) detail.textContent = `Ticket #${ticketCode || '----'} (${tier || '1 Line'}) - Verifying Numbers with DJ...`;
+      
+      banner.classList.remove('hidden');
+
+      if (claimBannerTimeout) clearTimeout(claimBannerTimeout);
+      claimBannerTimeout = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 9000);
     }
 
     function loadInitialState() {
@@ -453,6 +563,9 @@
         renderMasterBoardGrid();
         renderRecentStrip();
         resetBallDisplay();
+      }
+      else if (msg.type === 'BINGO_CLAIM') {
+        showClaimBanner(msg.playerName, msg.ticketCode || msg.cardId, msg.tier);
       }
     }
 
@@ -621,7 +734,7 @@
       if (!container || typeof QRCode === 'undefined') return;
       container.innerHTML = '';
 
-      const targetUrl = window.location.origin + window.location.pathname.replace('tv.html', 'index.html') + `?mode=player&set=${tvActiveSet ? tvActiveSet.id : 1}`;
+      const targetUrl = window.location.origin + window.location.pathname.replace('tv.html', 'index.html') + `?mode=player&room=${tvRoomCode}&set=${tvActiveSet ? tvActiveSet.id : 1}&venue=${tvCurrentVenue ? tvCurrentVenue.id : 'beerbox_midrand'}`;
       new QRCode(container, {
         text: targetUrl,
         width: 48,

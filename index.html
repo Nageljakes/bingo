@@ -14,10 +14,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Venues, Rotating Sets & Mobile QR -->
+  <!-- Venues, Rotating Sets, Mobile QR & Serverless LiveSync -->
   <script src="venues.js"></script>
   <script src="bingoSets.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="paho-mqtt.min.js"></script>
+  <script src="liveSync.js"></script>
   
   <script>
     tailwind.config = {
@@ -268,12 +270,31 @@
           <button onclick="toggleScoreboardModal()" class="px-2 py-1 bg-gray-900 hover:bg-gray-800 text-gray-200 font-bold rounded-lg text-xs border border-gray-700 flex items-center gap-1 shadow-sm active:scale-95" title="Scoreboard">
             <i class="fa-solid fa-trophy text-amber-400 text-[10px]"></i>
           </button>
+          <button onclick="openRoomModal()" class="px-2 py-1 bg-gray-900 hover:bg-gray-800 text-emerald-400 font-bold rounded-lg text-xs border border-emerald-500/40 flex items-center gap-1 shadow-sm active:scale-95" title="Live Room Session">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span id="headerRoomMobile" class="text-[10px] font-mono font-black text-amber-300">ROOM</span>
+          </button>
         </div>
       </div>
 
       <!-- Action Deck: Set Selector + Audio FX + Big Screen Toggle -->
       <div class="flex flex-wrap items-center justify-between md:justify-end gap-1.5 sm:gap-2">
         
+        <!-- Live Session Room & Multi-Device Sync Pill -->
+        <div class="relative inline-block">
+          <button id="liveRoomPillBtn" onclick="openRoomModal()" class="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-950/80 to-gray-900 text-emerald-400 hover:text-emerald-300 font-bold rounded-xl text-xs border border-emerald-500/40 flex items-center gap-1.5 shadow-sm transition active:scale-95" title="Live Room Session & Multi-Device Sync">
+            <span class="relative flex h-2 w-2">
+              <span id="liveRoomPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span id="liveRoomDot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span id="liveRoomCodeBadge" class="font-mono font-black text-amber-300">ROOM: BEERBOX</span>
+            <span class="text-gray-500">|</span>
+            <span id="livePlayersCountBadge" class="text-emerald-400 font-extrabold flex items-center gap-1">
+              <i class="fa-solid fa-users text-[10px]"></i> <span id="livePlayersCount">0</span>
+            </span>
+          </button>
+        </div>
+
         <!-- Desktop Gig Venue Profile Selector -->
         <div class="relative hidden md:inline-block">
           <button id="venueSelectorBtn" onclick="toggleVenueDropdown(event)" class="px-3 py-1.5 bg-gray-900/90 hover:bg-gray-800 text-amber-300 font-bold rounded-xl text-xs border border-amber-500/40 flex items-center gap-2 shadow-sm transition active:scale-95" title="Switch Gig Venue Profile">
@@ -1144,6 +1165,125 @@
   </div>
 
   <!-- ========================================================
+       MODAL 6: LIVE SESSION ROOM & MULTI-DEVICE SYNC MODAL
+       ======================================================== -->
+  <div id="liveRoomModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-panel rounded-3xl border-2 border-emerald-500/40 w-full max-w-lg p-5 sm:p-6 shadow-2xl bg-gray-950 text-left max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black font-display text-white uppercase tracking-tight">Live Session Room</h3>
+            <p class="text-[11px] text-gray-400">Serverless multi-device sync across mobile phones and pub TVs</p>
+          </div>
+        </div>
+        <button onclick="closeRoomModal()" class="text-gray-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Room Code Form -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Active Room Code</label>
+          <div class="flex gap-2">
+            <input type="text" id="roomCodeInput" maxlength="12" class="flex-1 bg-gray-900 border border-emerald-500/40 rounded-xl px-3.5 py-2 font-mono font-black text-amber-300 text-sm tracking-wider uppercase focus:outline-none focus:border-emerald-400" placeholder="e.g. BEERBOX">
+            <button onclick="applyNewRoomCode()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition active:scale-95">Set Room</button>
+            <button onclick="generateRandomRoomCode()" class="px-2.5 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 font-bold text-xs rounded-xl transition active:scale-95" title="Generate Random Code">
+              <i class="fa-solid fa-dice"></i>
+            </button>
+          </div>
+          <p class="text-[10px] text-gray-500 mt-1">Patrons and wireless screens use this code to join your live session.</p>
+        </div>
+
+        <!-- Connection Status Card -->
+        <div class="p-3 bg-gray-900/90 rounded-2xl border border-gray-800 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-400 font-medium">Real-time Cloud Mesh:</span>
+            <span id="modalBrokerBadge" class="text-emerald-400 font-bold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              EMQX Global (Zero Cost)
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-400 font-medium">Connected Patrons:</span>
+            <span id="modalPlayersCount" class="text-amber-300 font-bold font-mono">0 Players Active</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-400 font-medium">Architecture:</span>
+            <span class="text-gray-300 text-[11px]">Static GitHub Pages + WSS MQTT</span>
+          </div>
+        </div>
+
+        <!-- Quick Share Links -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider">Quick Dispatch Links</label>
+          
+          <div class="p-2.5 bg-gray-900/60 rounded-xl border border-gray-800 flex items-center justify-between gap-2">
+            <div class="truncate text-xs">
+              <div class="text-gray-200 font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-mobile-screen text-amber-400"></i> Mobile Player Link
+              </div>
+              <div id="modalPlayerLinkPreview" class="text-[10px] font-mono text-gray-400 truncate mt-0.5">https://nageljakes.github.io/bingo/?mode=player&room=BEERBOX</div>
+            </div>
+            <button onclick="copyPlayerLinkFromModal()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs rounded-lg shadow-sm shrink-0 active:scale-95 transition">
+              Copy
+            </button>
+          </div>
+
+          <div class="p-2.5 bg-gray-900/60 rounded-xl border border-gray-800 flex items-center justify-between gap-2">
+            <div class="truncate text-xs">
+              <div class="text-gray-200 font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-tv text-emerald-400"></i> Wireless Pub TV Link
+              </div>
+              <div id="modalTvLinkPreview" class="text-[10px] font-mono text-gray-400 truncate mt-0.5">https://nageljakes.github.io/bingo/tv.html?room=BEERBOX</div>
+            </div>
+            <button onclick="copyTvLinkFromModal()" class="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs rounded-lg shadow-sm shrink-0 active:scale-95 transition">
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-2 flex items-center justify-between gap-2 border-t border-gray-800">
+          <button onclick="openMobileQrModal(); closeRoomModal();" class="px-3 py-2 bg-gray-900 hover:bg-gray-800 border border-amber-500/40 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-qrcode text-amber-400"></i> Show Large QR Code
+          </button>
+          <button onclick="closeRoomModal()" class="px-4 py-2 bg-gray-800 text-gray-200 hover:bg-gray-700 rounded-xl text-xs font-bold transition">
+            Done
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- INBOUND BINGO CLAIM TOAST ALERT (DJ SCREEN) -->
+  <div id="inboundClaimToast" class="hidden fixed top-4 right-4 z-50 max-w-sm w-full bg-gradient-to-r from-red-950 via-gray-950 to-red-950 border-2 border-red-500/80 rounded-2xl p-4 shadow-2xl animate-bounce glow-red">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-xl bg-red-600/30 text-red-400 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-bullhorn animate-pulse"></i>
+      </div>
+      <div class="flex-1">
+        <div class="text-[10px] uppercase font-black text-red-400 tracking-wider">REMOTE BINGO CLAIM</div>
+        <div id="claimToastPlayer" class="text-sm font-black text-white leading-tight mt-0.5">Player Name</div>
+        <div id="claimToastDetail" class="text-xs text-amber-300 font-mono mt-0.5">Ticket #BB-1001 (1 Line)</div>
+        <div class="flex items-center gap-2 mt-2">
+          <button id="claimToastVerifyBtn" onclick="verifyClaimFromToast()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black text-xs rounded-lg shadow-sm active:scale-95 transition">
+            1-Click Verify
+          </button>
+          <button onclick="dismissClaimToast()" class="px-2.5 py-1 bg-gray-900 text-gray-400 hover:text-white text-xs rounded-lg">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
        APPLICATION JAVASCRIPT ENGINE
        ======================================================== -->
   <script>
@@ -1333,6 +1473,7 @@
       generateFreshPlayerCard(false);
       updateVenueDisplay();
       renderTeamList();
+      initLiveSyncSession();
 
       // Keyboard shortcuts: SPACE to draw next ball
       window.addEventListener('keydown', (e) => {
@@ -1353,13 +1494,17 @@
       try {
         if (broadcastChannel) broadcastChannel.postMessage(payload);
         localStorage.setItem('bb_bingo_broadcast_payload', JSON.stringify(payload));
+        if (typeof LiveSync !== 'undefined' && LiveSync.isConnected) {
+          LiveSync.sendPayload(payload.type, payload);
+        }
       } catch (e) {
         console.warn('Broadcast error:', e);
       }
     }
 
     function launchPubTvWindow() {
-      window.open('tv.html', 'bingo_pub_tv', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
+      const roomParam = activeRoomCode ? `?room=${activeRoomCode}` : '';
+      window.open(`tv.html${roomParam}`, 'bingo_pub_tv', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
     }
 
     function checkUrlParameters() {
@@ -2268,6 +2413,12 @@
       playSFX('correct');
       launchConfetti();
 
+      // Dispatch real-time BINGO claim to DJ and Big Screen TV via LiveSync!
+      const playerName = (typeof localStorage !== 'undefined' && localStorage.getItem('bingo_player_name')) || 'Table Patron';
+      if (typeof LiveSync !== 'undefined') {
+        LiveSync.sendBingoClaim(playerTicketId, playerName, PATTERNS[activePattern]?.name || 'Winning Line');
+      }
+
       const modal = document.getElementById('bingoVictoryModal');
       const cardDisplay = document.getElementById('victoryCardIdDisplay');
       const subtitle = document.getElementById('victorySubtitle');
@@ -2384,7 +2535,7 @@
       if (!modal || !container) return;
       container.innerHTML = '';
 
-      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
+      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&room=${activeRoomCode}&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
       
       if (typeof QRCode !== 'undefined') {
         new QRCode(container, {
@@ -2406,7 +2557,7 @@
     }
 
     function copyPlayerLink() {
-      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
+      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&room=${activeRoomCode}&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
       navigator.clipboard.writeText(targetUrl).then(() => {
         const textEl = document.getElementById('copyPlayerLinkText');
         if (textEl) {
@@ -2414,6 +2565,298 @@
           setTimeout(() => { textEl.textContent = 'Copy Link'; }, 1500);
         }
       });
+    }
+
+    // ==========================================================
+    // LIVESYNC SERVERLESS REAL-TIME ENGINE
+    // ==========================================================
+    let activeRoomCode = 'BEERBOX';
+    let currentAppMode = 'host';
+    let activeClaimFromToast = null;
+
+    function initLiveSyncSession() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      const savedRoom = localStorage.getItem('bingo_room_code');
+
+      if (roomParam) {
+        activeRoomCode = roomParam.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      } else if (savedRoom) {
+        activeRoomCode = savedRoom.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      } else if (currentVenue && currentVenue.id) {
+        activeRoomCode = currentVenue.id.toUpperCase().split('_')[0] || 'BEERBOX';
+      }
+
+      updateRoomUI(activeRoomCode);
+
+      if (typeof LiveSync === 'undefined') {
+        console.warn('[LiveSync] Engine module not loaded');
+        return;
+      }
+
+      const role = currentAppMode === 'player' ? 'player' : 'dj';
+
+      LiveSync.init({
+        role: role,
+        roomCode: activeRoomCode,
+
+        onCall: (data) => {
+          if (currentAppMode === 'player') {
+            handlePlayerInboundCall(data);
+          }
+        },
+
+        onReveal: (data) => {
+          if (currentAppMode === 'player' && data.item) {
+            updatePlayerRevealedTrack(data.item);
+          }
+        },
+
+        onRoundChange: (data) => {
+          if (currentAppMode === 'player') {
+            updatePlayerRoundInfo(data);
+          }
+        },
+
+        onWinner: (data) => {
+          if (currentAppMode === 'player') {
+            playSFX('correct');
+            launchConfetti();
+          }
+        },
+
+        onReset: (data) => {
+          if (currentAppMode === 'player') {
+            calledBallIds.clear();
+            callHistory = [];
+            playerDaubedCells.clear();
+            renderPlayerCard();
+          }
+        },
+
+        onClaim: (claim) => {
+          if (currentAppMode !== 'player') {
+            handleInboundBingoClaim(claim);
+          }
+        },
+
+        onPresenceUpdate: (count, players) => {
+          updatePresenceCounterUI(count, players);
+        },
+
+        onStateRequest: (req) => {
+          if (currentAppMode !== 'player') {
+            LiveSync.broadcastStateSync({
+              calledIds: Array.from(calledBallIds),
+              callHistory: callHistory.slice(0, 10),
+              setIndex: currentSetIndex,
+              roundStage: currentRoundStage,
+              pattern: activePattern,
+              prize: currentStagePrize,
+              isGuessingMode: isMusicGuessingMode
+            });
+          }
+        },
+
+        onStateSync: (state) => {
+          if (currentAppMode === 'player' && state) {
+            handleLateJoinStateSync(state);
+          }
+        },
+
+        onStatusChange: (status) => {
+          updateLiveSyncStatusBadge(status);
+        }
+      });
+    }
+
+    function handlePlayerInboundCall(data) {
+      const item = data.item;
+      if (!item) return;
+
+      calledBallIds.add(item.id);
+      callHistory.unshift(item);
+
+      if (isPlayerAutoDaub) {
+        checkAndApplyAutoDaub(item.id);
+      } else {
+        renderPlayerCard();
+      }
+
+      checkPlayerBingoProgress();
+      playSFX('pop');
+    }
+
+    function updatePlayerRevealedTrack(item) {
+      const targetPatternEl = document.getElementById('playerTargetPatternName');
+      if (targetPatternEl && item) {
+        targetPatternEl.innerHTML = `<span class="text-amber-400 font-black">${item.title}</span> - ${item.artist || item.subtitle || ''}`;
+      }
+    }
+
+    function updatePlayerRoundInfo(data) {
+      if (data.patternName) {
+        const patternBadge = document.getElementById('playerTargetPatternName');
+        if (patternBadge) patternBadge.textContent = `${data.patternName} (${data.prize || ''})`;
+      }
+      if (data.patternKey && PATTERNS[data.patternKey]) {
+        activePattern = data.patternKey;
+      }
+      checkPlayerBingoProgress();
+    }
+
+    function handleLateJoinStateSync(state) {
+      if (state.calledIds && Array.isArray(state.calledIds)) {
+        state.calledIds.forEach(id => calledBallIds.add(id));
+      }
+      if (state.pattern && PATTERNS[state.pattern]) {
+        activePattern = state.pattern;
+      }
+      if (state.prize) {
+        currentStagePrize = state.prize;
+      }
+      if (state.setIndex !== undefined && window.BINGO_SETS && window.BINGO_SETS[state.setIndex]) {
+        currentSetIndex = state.setIndex;
+        updateSetUI(window.BINGO_SETS[state.setIndex]);
+      }
+      if (isPlayerAutoDaub) {
+        calledBallIds.forEach(id => checkAndApplyAutoDaub(id));
+      } else {
+        renderPlayerCard();
+      }
+      checkPlayerBingoProgress();
+    }
+
+    function handleInboundBingoClaim(claim) {
+      activeClaimFromToast = claim;
+      playSFX('airhorn');
+
+      const toast = document.getElementById('inboundClaimToast');
+      const pEl = document.getElementById('claimToastPlayer');
+      const dEl = document.getElementById('claimToastDetail');
+      if (pEl) pEl.textContent = claim.playerName || 'Table Patron';
+      if (dEl) dEl.textContent = `Ticket #${claim.cardId} (${claim.tier || 'Winning Pattern'})`;
+      if (toast) toast.classList.remove('hidden');
+
+      broadcastTv({
+        type: 'BINGO_CLAIM',
+        playerName: claim.playerName || 'Table Patron',
+        ticketCode: claim.cardId,
+        tier: claim.tier
+      });
+    }
+
+    function verifyClaimFromToast() {
+      if (!activeClaimFromToast) return;
+      const verifierInput = document.getElementById('verifierTicketInput');
+      if (verifierInput) {
+        verifierInput.value = activeClaimFromToast.cardId;
+      }
+      dismissClaimToast();
+      verifyPlayerCardClaim();
+    }
+
+    function dismissClaimToast() {
+      const toast = document.getElementById('inboundClaimToast');
+      if (toast) toast.classList.add('hidden');
+    }
+
+    function openRoomModal() {
+      const modal = document.getElementById('liveRoomModal');
+      const input = document.getElementById('roomCodeInput');
+      const playerPreview = document.getElementById('modalPlayerLinkPreview');
+      const tvPreview = document.getElementById('modalTvLinkPreview');
+
+      if (input) input.value = activeRoomCode;
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      if (playerPreview) playerPreview.textContent = `${baseUrl}?mode=player&room=${activeRoomCode}`;
+      if (tvPreview) tvPreview.textContent = `${baseUrl.replace('index.html', '')}tv.html?room=${activeRoomCode}`;
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeRoomModal() {
+      const modal = document.getElementById('liveRoomModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function applyNewRoomCode() {
+      const input = document.getElementById('roomCodeInput');
+      if (!input) return;
+      const code = input.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      if (!code) {
+        alert('Please enter a valid room code (letters and numbers).');
+        return;
+      }
+      activeRoomCode = code;
+      localStorage.setItem('bingo_room_code', activeRoomCode);
+      if (typeof LiveSync !== 'undefined') {
+        LiveSync.setRoomCode(activeRoomCode);
+      }
+      updateRoomUI(activeRoomCode);
+      openRoomModal();
+    }
+
+    function generateRandomRoomCode() {
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 5; i++) {
+        code += letters.charAt(Math.floor(Math.random() * letters.length));
+      }
+      const input = document.getElementById('roomCodeInput');
+      if (input) input.value = code;
+      applyNewRoomCode();
+    }
+
+    function copyPlayerLinkFromModal() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const targetUrl = `${baseUrl}?mode=player&room=${activeRoomCode}`;
+      navigator.clipboard.writeText(targetUrl).then(() => {
+        alert(`Player link copied: ${targetUrl}`);
+      });
+    }
+
+    function copyTvLinkFromModal() {
+      const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+      const targetUrl = `${baseUrl}tv.html?room=${activeRoomCode}`;
+      navigator.clipboard.writeText(targetUrl).then(() => {
+        alert(`Wireless TV link copied: ${targetUrl}`);
+      });
+    }
+
+    function updateRoomUI(roomCode) {
+      const badge = document.getElementById('liveRoomCodeBadge');
+      const mobileBadge = document.getElementById('headerRoomMobile');
+      if (badge) badge.textContent = `ROOM: ${roomCode}`;
+      if (mobileBadge) mobileBadge.textContent = roomCode;
+    }
+
+    function updatePresenceCounterUI(count, players) {
+      const headerCount = document.getElementById('livePlayersCount');
+      const modalCount = document.getElementById('modalPlayersCount');
+      if (headerCount) headerCount.textContent = count;
+      if (modalCount) modalCount.textContent = `${count} Active`;
+    }
+
+    function updateLiveSyncStatusBadge(status) {
+      const dot = document.getElementById('liveRoomDot');
+      const ping = document.getElementById('liveRoomPing');
+      const badge = document.getElementById('modalBrokerBadge');
+
+      if (status.status === 'connected') {
+        if (dot) dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
+        if (ping) ping.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+        if (badge) badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> ${status.broker} (Online)`;
+      } else if (status.status === 'connecting') {
+        if (dot) dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-amber-500';
+        if (ping) ping.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75';
+        if (badge) badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 inline-block animate-pulse"></span> Connecting to ${status.broker}...`;
+      } else {
+        if (dot) dot.className = 'relative inline-flex rounded-full h-2 w-2 bg-gray-500';
+        if (ping) ping.className = 'hidden';
+        if (badge) badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Disconnected (Retrying...)`;
+      }
     }
 
     // ==========================================================
