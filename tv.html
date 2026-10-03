@@ -2,13 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=index.html">
-  <title>Redirecting to DJ Pub Bingo Display...</title>
-  <script>
-    window.location.replace('index.html' + window.location.search);
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DJ Pub Bingo - Big Screen Display</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>window.IS_TV = true;</script>
 </head>
-<body style="background:#080C14; color:#F3F4F6; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh;">
-  <p>Loading DJ Pub Bingo Big Screen Display...</p>
+<body class="idle">
+  <div class="ambient">
+     <div class="dots"></div>
+  </div>
+
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+         <div class="brand-logo"><span>B</span></div>
+         <div class="brand-text">
+           <div class="venue-name" id="uiVenueName">DJ BINGO</div>
+           <div class="venue-sub"><div class="live-dot"></div> <b id="uiVenueSub">LIVE • Loading...</b></div>
+         </div>
+      </div>
+      <div class="stage-pill" id="uiStage">
+         <div class="stage-dots"><i></i><i></i><i></i></div>
+         <div>
+           <div class="stage-label">Stage 1</div>
+           <div class="stage-goal">One Line</div>
+           <div class="stage-prize">Loading...</div>
+         </div>
+      </div>
+      <div class="counter">
+         <div class="counter-meta">
+           <div class="k">Balls Drawn</div>
+           <div class="progress"><i style="width: 0%" id="uiProgress"></i></div>
+         </div>
+         <div class="counter-num" id="uiDrawn">0</div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="left">
+        <div class="basket-panel panel">
+           <canvas id="tumblerCanvas"></canvas>
+           <div class="basket-tag"><span class="remain" id="uiRemain">75</span> BALLS IN BASKET</div>
+           <div class="basket-state" id="uiBasketState">IDLE</div>
+        </div>
+        <div class="hero-panel panel">
+           <div class="hero-stage">
+              <div class="hero-rays"></div>
+              <svg class="hero-ring" id="heroRing"><circle class="bg" cx="50%" cy="50%" r="48%" /><circle class="fg" cx="50%" cy="50%" r="48%" /></svg>
+              <div class="hero-burst" id="heroBurst"></div>
+              <div id="heroSlot"></div>
+           </div>
+           <div class="caption">
+              <div class="cap-title" id="capTitle">Ready to Play!</div>
+              <div class="cap-sub" id="capSub">Waiting for DJ...</div>
+           </div>
+        </div>
+      </div>
+      <div class="board-panel panel">
+        <div class="board-head">
+          <div class="board-title">Master Board</div>
+          <div class="board-set" id="uiSetName">CLASSIC 75</div>
+        </div>
+        <div class="board b75" id="masterBoard"></div>
+      </div>
+    </div>
+
+    <div class="bottombar">
+       <div class="recent panel">
+          <div class="recent-label">RECENT<br>CALLS</div>
+          <div class="recent-list" id="recentList">
+             <div class="recent-empty">No calls yet</div>
+          </div>
+       </div>
+       <div class="ticker panel">
+          <div class="ticker-badge">LATEST WINNERS</div>
+          <div class="ticker-viewport">
+             <div class="ticker-track"><span id="uiTicker">No winners yet... Get your cards ready!</span></div>
+          </div>
+       </div>
+    </div>
+  </div>
+
+  <div id="winnerOverlay" class="winner hidden">
+      <div class="winner-rays"></div>
+      <div class="winner-inner">
+          <div class="winner-kicker">BINGO VERIFIED</div>
+          <div class="winner-word">
+              <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
+          </div>
+          <div class="winner-stage" id="winStage">FULL HOUSE</div>
+          <div class="winner-prize" id="winPrize">R500 BAR TAB</div>
+          <div class="winner-card" id="winCard">Card #145</div>
+      </div>
+  </div>
+
+  <script src="venues.js"></script>
+  <script src="bingoSets.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/cards.js"></script>
+  <script src="js/engine.js"></script>
 </body>
 </html>
