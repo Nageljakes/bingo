@@ -571,16 +571,30 @@
           <input type="text" id="venueBranchInput" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
         </div>
         <div>
-          <label class="block text-gray-400 font-bold mb-1">Stage 1 Prize (1 Line)</label>
-          <input type="text" id="stage1PrizeInput" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-gray-400 font-bold">Stage 1 Prize (1 Line)</label>
+            <span class="text-[10px] text-gray-500">Leave blank to hide</span>
+          </div>
+          <input type="text" id="stage1PrizeInput" placeholder="e.g. Free Round / Draft (leave blank for no prize)" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
         </div>
         <div>
-          <label class="block text-gray-400 font-bold mb-1">Stage 2 Prize (2 Lines)</label>
-          <input type="text" id="stage2PrizeInput" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-gray-400 font-bold">Stage 2 Prize (2 Lines)</label>
+            <span class="text-[10px] text-gray-500">Leave blank to hide</span>
+          </div>
+          <input type="text" id="stage2PrizeInput" placeholder="e.g. Snack Platter / Beer Bucket" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
         </div>
         <div>
-          <label class="block text-gray-400 font-bold mb-1">Stage 3 Prize (Full House)</label>
-          <input type="text" id="stage3PrizeInput" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-gray-400 font-bold">Stage 3 Prize (Full House)</label>
+            <span class="text-[10px] text-gray-500">Leave blank to hide</span>
+          </div>
+          <input type="text" id="stage3PrizeInput" placeholder="e.g. R500 Bar Tab & Trophy" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 focus:outline-none focus:border-amber-400">
+        </div>
+        <div class="pt-1">
+          <button type="button" onclick="clearAllPrizes()" class="text-[11px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer">
+            Clear all prizes (No prizes offered)
+          </button>
         </div>
       </div>
 
@@ -1737,9 +1751,20 @@
       playSFX('pop');
     }
 
+    function hasPrizeOffered(prizeStr) {
+      if (!prizeStr) return false;
+      const clean = String(prizeStr).trim().toLowerCase();
+      if (!clean) return false;
+      if (clean === 'none' || clean === 'no prize' || clean === 'no prizes' || clean === 'n/a' || clean === 'nil' || clean === '0' || clean === '-' || clean === 'venue prize' || clean === 'null' || clean === 'undefined') {
+        return false;
+      }
+      return true;
+    }
+
     function updateStageDisplay() {
       const cfg = STAGE_CONFIG[currentStage - 1] || STAGE_CONFIG[0];
-      const prize = venueConfig[cfg.defaultPrizeKey] || 'Venue Prize';
+      const rawPrize = (venueConfig && venueConfig[cfg.defaultPrizeKey]) ? String(venueConfig[cfg.defaultPrizeKey]).trim() : '';
+      const isPrizeActive = hasPrizeOffered(rawPrize);
 
       const goalEl = document.getElementById('headerStageGoal');
       const prizeEl = document.getElementById('headerStagePrize');
@@ -1747,9 +1772,27 @@
       const winPrizeEl = document.getElementById('winnerPrizeText');
 
       if (goalEl) goalEl.textContent = cfg.name;
-      if (prizeEl) prizeEl.textContent = prize;
       if (winStageEl) winStageEl.textContent = cfg.name;
-      if (winPrizeEl) winPrizeEl.textContent = prize;
+
+      if (prizeEl) {
+        if (isPrizeActive) {
+          prizeEl.textContent = rawPrize;
+          prizeEl.classList.remove('hidden');
+        } else {
+          prizeEl.textContent = '';
+          prizeEl.classList.add('hidden');
+        }
+      }
+
+      if (winPrizeEl) {
+        if (isPrizeActive) {
+          winPrizeEl.textContent = rawPrize;
+          winPrizeEl.classList.remove('hidden');
+        } else {
+          winPrizeEl.textContent = '';
+          winPrizeEl.classList.add('hidden');
+        }
+      }
     }
 
     // ==========================================================
@@ -2080,11 +2123,20 @@
 
       if (vName) vName.value = venueConfig.title;
       if (vBranch) vBranch.value = venueConfig.branch;
-      if (s1) s1.value = venueConfig.stage1Prize;
-      if (s2) s2.value = venueConfig.stage2Prize;
-      if (s3) s3.value = venueConfig.stage3Prize;
+      if (s1) s1.value = venueConfig.stage1Prize || '';
+      if (s2) s2.value = venueConfig.stage2Prize || '';
+      if (s3) s3.value = venueConfig.stage3Prize || '';
 
       if (modal) modal.classList.remove('hidden');
+    }
+
+    function clearAllPrizes() {
+      const s1 = document.getElementById('stage1PrizeInput');
+      const s2 = document.getElementById('stage2PrizeInput');
+      const s3 = document.getElementById('stage3PrizeInput');
+      if (s1) s1.value = '';
+      if (s2) s2.value = '';
+      if (s3) s3.value = '';
     }
 
     function closeVenueModal() {
@@ -2101,9 +2153,9 @@
 
       if (vName) venueConfig.title = vName;
       if (vBranch) venueConfig.branch = vBranch;
-      if (s1) venueConfig.stage1Prize = s1;
-      if (s2) venueConfig.stage2Prize = s2;
-      if (s3) venueConfig.stage3Prize = s3;
+      venueConfig.stage1Prize = s1;
+      venueConfig.stage2Prize = s2;
+      venueConfig.stage3Prize = s3;
 
       saveStorageData();
       updateVenueUI();
