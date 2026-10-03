@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pub Bingo TV - Live Spectator Display</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <!-- QRCode.js CDN for live mobile scan QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Venues & Sets -->
+  <script src="venues.js"></script>
+  <script src="bingoSets.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              beer: '#FBBF24',
+              amber: '#D97706',
+              dark: '#06090F',
+              card: '#0D131F'
+            }
+          },
+          fontFamily: {
+            display: ['Outfit', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 50% 10%, #1c1304 0%, #06090F 80%);
+      color: #F3F4F6;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+    .font-display {
+      font-family: 'Outfit', sans-serif;
+    }
+    /* DJ turntable spin */
+    @keyframes vinyl-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-vinyl {
+      animation: vinyl-spin 4s linear infinite;
+    }
+    /* Audio Equalizer Wave animation for hidden song mode */
+    @keyframes bounceWave {
+      0%, 100% { height: 12px; }
+      50% { height: 64px; }
+    }
+    .eq-bar {
+      width: 8px;
+      border-radius: 9999px;
+      background: linear-gradient(to top, #F59E0B, #FBBF24);
+      animation: bounceWave 1.2s infinite ease-in-out;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.15s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.3s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.45s; }
+    .eq-bar:nth-child(5) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(6) { animation-delay: 0.35s; }
+    .eq-bar:nth-child(7) { animation-delay: 0.5s; }
+    .eq-bar:nth-child(8) { animation-delay: 0.25s; }
+
+    /* Pop in animation */
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.12); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    /* Glow highlights */
+    .glow-gold {
+      box-shadow: 0 0 45px rgba(245, 158, 11, 0.45);
+    }
+    .glass-panel {
+      background: rgba(13, 19, 31, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    /* Smooth ticker animation */
+    @keyframes tickerSlide {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .ticker-content {
+      display: inline-block;
+      white-space: nowrap;
+      animation: tickerSlide 35s linear infinite;
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between p-4 sm:p-6 select-none">
+
+  <!-- TOP BAR: VENUE BRANDING + CURRENT ROUND + MOBILE QR SCAN -->
+  <header class="flex items-center justify-between border-b border-amber-500/25 pb-3">
+    
+    <!-- Left: Venue Branding & DJ Title -->
+    <div class="flex items-center space-x-3.5">
+      <div class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 flex items-center justify-center p-0.5 shadow-xl shrink-0">
+        <div class="w-full h-full bg-gray-950 rounded-full flex items-center justify-center">
+          <i class="fa-solid fa-compact-disc text-amber-400 text-2xl spin-vinyl"></i>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 id="tvVenueTitle" class="text-2xl sm:text-3xl font-black font-display tracking-tight bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent uppercase leading-none">
+            BEERBOX PUB & GRILL
+          </h1>
+          <span id="tvBranchBadge" class="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+            Midrand
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-gray-400 flex items-center gap-2 mt-1">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Live Entertainment by <strong id="tvDjTitle" class="text-gray-200">TJ Entertainment</strong>
+          <span>•</span>
+          <span id="tvSetName" class="text-amber-400 font-bold">Set 1: Classic 75</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Center / Right: Active Round Target + Mobile Scan QR -->
+    <div class="flex items-center gap-4">
+      
+      <!-- Round Target & Prize Card -->
+      <div class="glass-panel px-4 py-2 rounded-2xl border border-amber-500/30 flex items-center gap-3 shadow-lg">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">CURRENT TARGET GOAL</div>
+          <div id="tvTargetGoal" class="text-base sm:text-lg font-black font-display text-amber-300 leading-tight">
+            STAGE 1: ANY 1 LINE
+          </div>
+          <div id="tvTargetPrize" class="text-[11px] text-emerald-400 font-bold">
+            Round of Shooters / Draft
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile QR Code Mini Card -->
+      <div class="glass-panel px-3 py-1.5 rounded-2xl border border-amber-500/30 flex items-center gap-2 shadow-lg">
+        <div id="tvQrCodeContainer" class="w-12 h-12 bg-white rounded-lg p-0.5 flex items-center justify-center">
+          <!-- Populated by QRCode.js -->
+        </div>
+        <div class="text-left">
+          <div class="text-[9px] uppercase font-black text-amber-400 tracking-wider">PLAY ON PHONE</div>
+          <div class="text-[10px] text-gray-300 font-bold leading-tight">Scan QR Code<br>to Daub Live!</div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN DUAL-STAGE ARENA -->
+  <main class="grid grid-cols-12 gap-6 my-auto py-3 items-center">
+    
+    <!-- LEFT ARENA (5 COLS): JUMBO BALL / TRACK REVEAL -->
+    <div class="col-span-5 flex flex-col items-center text-center">
+      
+      <!-- MODE A: STANDARD / REVEALED BALL DISPLAY -->
+      <div id="tvRevealedDisplay" class="flex flex-col items-center">
+        <!-- Giant Glowing Sphere -->
+        <div id="tvBallSphere" class="relative w-72 h-72 sm:w-88 sm:h-88 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-yellow-700 p-2.5 shadow-2xl flex items-center justify-center glow-gold">
+          <div class="w-full h-full rounded-full bg-gradient-to-br from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center border-8 border-amber-300/40 relative overflow-hidden">
+            <span id="tvBallLetter" class="text-2xl sm:text-4xl font-black tracking-widest text-amber-400 uppercase leading-none mb-1">
+              READY
+            </span>
+            <span id="tvBallNumber" class="text-7xl sm:text-9xl font-black font-display text-white tracking-tight leading-none drop-shadow-2xl">
+              --
+            </span>
+            <span id="tvBallCallBadge" class="text-xs sm:text-sm font-bold text-amber-300 uppercase tracking-widest mt-2 px-3 py-1 bg-amber-500/20 rounded-full border border-amber-500/30">
+              Eyes Down
+            </span>
+          </div>
+        </div>
+
+        <!-- Song / Clue Title Display -->
+        <div class="mt-4 max-w-lg">
+          <div id="tvBallTitle" class="text-2xl sm:text-4xl font-black font-display text-amber-300 leading-tight">
+            Pub Bingo Night
+          </div>
+          <div id="tvBallSubtitle" class="text-base sm:text-lg text-gray-300 font-semibold mt-1">
+            Grab a drink and get your cards ready!
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE B: MUSIC BINGO HIDDEN / GUESSING MODE -->
+      <div id="tvGuessingDisplay" class="hidden flex-col items-center">
+        <div class="relative w-72 h-72 sm:w-88 sm:h-88 rounded-full bg-gradient-to-br from-purple-600 via-indigo-700 to-blue-900 p-2.5 shadow-2xl flex items-center justify-center glow-gold">
+          <div class="w-full h-full rounded-full bg-gradient-to-br from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center border-8 border-purple-400/40 relative overflow-hidden">
+            
+            <i class="fa-solid fa-music text-3xl sm:text-4xl text-amber-400 mb-2 animate-bounce"></i>
+            
+            <!-- Animated Equalizer Waves -->
+            <div class="flex items-center gap-1.5 h-16 my-1">
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+            </div>
+
+            <span class="text-sm font-black tracking-widest text-amber-300 uppercase mt-2">
+              LISTEN & SING ALONG!
+            </span>
+            <span class="text-xs text-gray-400">Do you know this track?</span>
+          </div>
+        </div>
+
+        <div class="mt-4 max-w-lg">
+          <div class="text-2xl sm:text-3xl font-black font-display text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 uppercase">
+            🎵 NAME THAT TUNE! 🎵
+          </div>
+          <div id="tvGuessingHint" class="text-sm sm:text-base text-gray-300 font-bold mt-1">
+            Listen to the DJ audio and stamp your cards!
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Balls Ribbon -->
+      <div class="mt-5 w-full max-w-md">
+        <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 text-left flex justify-between">
+          <span>Last 5 Calls</span>
+          <span id="tvTotalCallsCounter" class="text-amber-400">0 Balls Called</span>
+        </div>
+        <div id="tvRecentStrip" class="flex items-center gap-2 justify-center min-h-[48px]">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT ARENA (7 COLS): FULL LIGHTED MASTER BOARD MATRIX -->
+    <div class="col-span-7 glass-panel rounded-3xl p-5 border border-amber-500/30 shadow-2xl flex flex-col justify-between">
+      
+      <div class="flex items-center justify-between border-b border-gray-800 pb-2 mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-table-cells text-amber-400 text-xl"></i>
+          <h2 class="font-display font-extrabold text-xl text-gray-100 uppercase tracking-tight">
+            MASTER BOARD MATRIX
+          </h2>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-bold">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/60"></span>
+            <span class="text-amber-300">Called</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-gray-900 border border-gray-700"></span>
+            <span class="text-gray-400">Waiting</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Grid Container -->
+      <div id="tvMasterBoardGrid" class="space-y-2 py-1">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Pattern Helper Bar -->
+      <div class="mt-3 pt-2.5 border-t border-gray-800/80 flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-amber-400"></i>
+          <span>Check your card carefully! Shout <strong>BINGO</strong> loudly when you hit the goal!</span>
+        </div>
+        <div class="text-amber-400 font-bold uppercase tracking-wider text-[11px]" id="tvProgressionBadge">
+          Stage 1 of 3
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- BOTTOM TICKER TAPE -->
+  <footer class="border-t border-amber-500/25 pt-2 pb-1 overflow-hidden relative">
+    <div class="ticker-content text-sm sm:text-base font-extrabold tracking-wider text-amber-300 uppercase">
+      <span id="tvTickerText">
+        BEERBOX MIDRAND • 2-FOR-1 CRAFT DRAFTS UNTIL 8PM • R500 BAR TAB GRAND PRIZE • ENJOY LIVE PUB BINGO NIGHT!
+      </span>
+    </div>
+  </footer>
+
+  <!-- FULLSCREEN WINNER CELEBRATION OVERLAY -->
+  <div id="tvWinnerOverlay" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+    
+    <div class="relative max-w-2xl w-full p-8 rounded-3xl bg-gradient-to-b from-gray-900 to-gray-950 border-4 border-amber-400 shadow-2xl glow-gold">
+      
+      <div class="w-28 h-28 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-600 mx-auto flex items-center justify-center shadow-2xl mb-4 animate-bounce">
+        <i class="fa-solid fa-trophy text-6xl text-gray-950"></i>
+      </div>
+
+      <div class="text-xs uppercase font-black text-amber-400 tracking-widest mb-1">
+        ★ VERIFIED PUB BINGO CHAMPION ★
+      </div>
+
+      <h1 class="text-6xl sm:text-7xl font-black font-display text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-200 uppercase tracking-tight">
+        BINGO WINNER!
+      </h1>
+
+      <div class="my-5 p-4 bg-gray-950/80 rounded-2xl border border-amber-500/40">
+        <div id="tvWinnerTeamName" class="text-3xl sm:text-4xl font-black font-display text-white">
+          TABLE 4 • BEER VIEW MIRRORS
+        </div>
+        <div id="tvWinnerTicketCode" class="text-sm font-mono font-bold text-amber-400 mt-1">
+          Ticket Code: #BB-1042 Verified
+        </div>
+        <div id="tvWinnerPrizeBadge" class="mt-3 text-lg font-black text-emerald-400 uppercase tracking-wide">
+          🍺 CLAIM YOUR BAR PRIZE NOW! 🍺
+        </div>
+      </div>
+
+      <p class="text-xs text-gray-400 uppercase tracking-wider">
+        Let's hear it for our winner! Next round commencing shortly.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- TV REALTIME SYNC JAVASCRIPT -->
+  <script>
+    let broadcastChannel = null;
+    let tvCalledBallIds = new Set();
+    let tvCallHistory = [];
+    let tvActiveSet = null;
+    let tvCurrentVenue = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initBroadcastChannel();
+      initFallbackStorageListener();
+      loadInitialState();
+      initMobileQr();
+    });
+
+    function initBroadcastChannel() {
+      if ('BroadcastChannel' in window) {
+        broadcastChannel = new BroadcastChannel('bingo_channel');
+        broadcastChannel.onmessage = (event) => {
+          handleIncomingMessage(event.data);
+        };
+      }
+    }
+
+    function initFallbackStorageListener() {
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'bb_bingo_broadcast_payload') {
+          try {
+            const data = JSON.parse(e.newValue);
+            handleIncomingMessage(data);
+          } catch (err) {}
+        }
+      });
+    }
+
+    function loadInitialState() {
+      // Load current venue from storage or default
+      const savedVenue = localStorage.getItem('bb_bingo_venue');
+      if (savedVenue) {
+        try { tvCurrentVenue = JSON.parse(savedVenue); } catch (e) {}
+      }
+      if (!tvCurrentVenue && window.BINGO_VENUES && window.BINGO_VENUES.length > 0) {
+        tvCurrentVenue = window.BINGO_VENUES[0];
+      }
+      updateVenueUI(tvCurrentVenue);
+
+      // Load set
+      const savedSetIdx = localStorage.getItem('bb_bingo_set_idx');
+      const setIdx = savedSetIdx !== null ? parseInt(savedSetIdx, 10) : 0;
+      if (window.BINGO_SETS && window.BINGO_SETS[setIdx]) {
+        tvActiveSet = window.BINGO_SETS[setIdx];
+      } else {
+        tvActiveSet = window.BINGO_SETS[0];
+      }
+      updateSetUI(tvActiveSet);
+
+      renderMasterBoardGrid();
+    }
+
+    function handleIncomingMessage(msg) {
+      if (!msg || !msg.type) return;
+
+      if (msg.type === 'DRAW_BALL') {
+        const item = msg.item;
+        tvCalledBallIds.add(item.id);
+        tvCallHistory.unshift(item);
+        
+        if (msg.isGuessingMode) {
+          showGuessingMode(item);
+        } else {
+          showRevealedMode(item);
+        }
+        
+        highlightMasterCell(item.id);
+        renderRecentStrip();
+      }
+      else if (msg.type === 'REVEAL_TRACK') {
+        showRevealedMode(msg.item);
+        launchTvConfetti();
+      }
+      else if (msg.type === 'CHANGE_SET') {
+        tvActiveSet = window.BINGO_SETS[msg.setIndex];
+        tvCalledBallIds.clear();
+        tvCallHistory = [];
+        updateSetUI(tvActiveSet);
+        renderMasterBoardGrid();
+        renderRecentStrip();
+        resetBallDisplay();
+      }
+      else if (msg.type === 'CHANGE_VENUE') {
+        tvCurrentVenue = msg.venue;
+        updateVenueUI(tvCurrentVenue);
+      }
+      else if (msg.type === 'CHANGE_PATTERN') {
+        updatePatternUI(msg.patternName, msg.prize, msg.stage);
+      }
+      else if (msg.type === 'BROADCAST_WINNER') {
+        showWinnerOverlay(msg.teamName, msg.ticketCode, msg.prize);
+      }
+      else if (msg.type === 'DISMISS_WINNER') {
+        hideWinnerOverlay();
+      }
+      else if (msg.type === 'RESET_GAME') {
+        tvCalledBallIds.clear();
+        tvCallHistory = [];
+        renderMasterBoardGrid();
+        renderRecentStrip();
+        resetBallDisplay();
+      }
+    }
+
+    function showRevealedMode(item) {
+      document.getElementById('tvRevealedDisplay').classList.remove('hidden');
+      document.getElementById('tvGuessingDisplay').classList.add('hidden');
+
+      const sphere = document.getElementById('tvBallSphere');
+      sphere.classList.remove('animate-pop');
+      void sphere.offsetWidth;
+      sphere.classList.add('animate-pop');
+
+      document.getElementById('tvBallLetter').textContent = item.col || 'BALL';
+      document.getElementById('tvBallNumber').textContent = item.id.toString();
+      document.getElementById('tvBallCallBadge').textContent = item.call || `No. ${item.id}`;
+      document.getElementById('tvBallTitle').textContent = item.title || item.rhyme || `Number ${item.id}`;
+      document.getElementById('tvBallSubtitle').textContent = item.subtitle || item.artist || '';
+    }
+
+    function showGuessingMode(item) {
+      document.getElementById('tvRevealedDisplay').classList.add('hidden');
+      document.getElementById('tvGuessingDisplay').classList.remove('hidden');
+      document.getElementById('tvGuessingHint').textContent = item.hint || 'Listen closely to the song!';
+    }
+
+    function resetBallDisplay() {
+      document.getElementById('tvRevealedDisplay').classList.remove('hidden');
+      document.getElementById('tvGuessingDisplay').classList.add('hidden');
+      document.getElementById('tvBallLetter').textContent = 'READY';
+      document.getElementById('tvBallNumber').textContent = '--';
+      document.getElementById('tvBallCallBadge').textContent = 'Next Round';
+      document.getElementById('tvBallTitle').textContent = 'Pub Bingo Night';
+      document.getElementById('tvBallSubtitle').textContent = 'Grab a drink and watch the board!';
+    }
+
+    function updateVenueUI(v) {
+      if (!v) return;
+      document.getElementById('tvVenueTitle').textContent = v.venueName || 'BEERBOX PUB & GRILL';
+      document.getElementById('tvBranchBadge').textContent = v.branch || 'Midrand';
+      document.getElementById('tvDjTitle').textContent = v.djName || 'TJ Entertainment';
+      document.getElementById('tvTickerText').textContent = v.ticker || '';
+    }
+
+    function updateSetUI(s) {
+      if (!s) return;
+      document.getElementById('tvSetName').textContent = `Set ${s.id}: ${s.name}`;
+      initMobileQr();
+    }
+
+    function updatePatternUI(name, prize, stage) {
+      if (name) document.getElementById('tvTargetGoal').textContent = name.toUpperCase();
+      if (prize) document.getElementById('tvTargetPrize').textContent = prize;
+      if (stage) document.getElementById('tvProgressionBadge').textContent = stage;
+    }
+
+    function renderMasterBoardGrid() {
+      const container = document.getElementById('tvMasterBoardGrid');
+      if (!container || !tvActiveSet) return;
+      container.innerHTML = '';
+
+      if (tvActiveSet.type === 'traditional-90') {
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-10 gap-1.5';
+        tvActiveSet.items.forEach(it => {
+          const isCalled = tvCalledBallIds.has(it.id);
+          const cell = document.createElement('div');
+          cell.id = `tv-mb-${it.id}`;
+          cell.className = `h-9 rounded-lg text-sm font-bold flex items-center justify-center transition ${
+            isCalled ? 'bg-amber-500 text-gray-950 font-black shadow-md ring-2 ring-amber-300' : 'bg-gray-950 text-gray-400 border border-gray-800'
+          }`;
+          cell.textContent = it.id;
+          grid.appendChild(cell);
+        });
+        container.appendChild(grid);
+      } else {
+        const letters = ['B', 'I', 'N', 'G', 'O'];
+        letters.forEach(letter => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center gap-2';
+
+          const badge = document.createElement('div');
+          badge.className = 'w-9 h-9 rounded-xl bg-amber-500 text-gray-950 font-display font-black text-base flex items-center justify-center shadow-sm shrink-0';
+          badge.textContent = letter;
+          row.appendChild(badge);
+
+          const cellsWrap = document.createElement('div');
+          cellsWrap.className = 'grid grid-cols-15 gap-1.5 flex-1';
+
+          const itemsForLetter = tvActiveSet.items.filter(it => it.col === letter);
+          itemsForLetter.forEach(it => {
+            const isCalled = tvCalledBallIds.has(it.id);
+            const cell = document.createElement('div');
+            cell.id = `tv-mb-${it.id}`;
+            cell.className = `h-9 rounded-lg text-xs font-bold flex items-center justify-center transition ${
+              isCalled ? 'bg-amber-500 text-gray-950 font-black shadow-md ring-1 ring-amber-300' : 'bg-gray-950 text-gray-400 border border-gray-800'
+            }`;
+            cell.textContent = it.id;
+            cellsWrap.appendChild(cell);
+          });
+
+          row.appendChild(cellsWrap);
+          container.appendChild(row);
+        });
+      }
+
+      document.getElementById('tvTotalCallsCounter').textContent = `${tvCalledBallIds.size} Balls Called`;
+    }
+
+    function highlightMasterCell(id) {
+      const cell = document.getElementById(`tv-mb-${id}`);
+      if (cell) {
+        cell.className = 'h-9 rounded-lg text-xs font-black bg-amber-500 text-gray-950 shadow-md ring-2 ring-amber-300 transition animate-pop';
+      }
+      document.getElementById('tvTotalCallsCounter').textContent = `${tvCalledBallIds.size} Balls Called`;
+    }
+
+    function renderRecentStrip() {
+      const strip = document.getElementById('tvRecentStrip');
+      if (!strip) return;
+      const recent = tvCallHistory.slice(0, 5);
+
+      if (recent.length === 0) {
+        strip.innerHTML = '<span class="text-xs text-gray-500 italic">Eyes down for the first ball...</span>';
+        return;
+      }
+
+      strip.innerHTML = recent.map((ball, idx) => `
+        <div class="flex-shrink-0 w-11 h-11 rounded-full ${
+          idx === 0 ? 'bg-gradient-to-tr from-amber-400 to-yellow-200 text-gray-950 font-black ring-2 ring-amber-400 shadow-lg scale-105' : 'bg-gray-900 border border-amber-500/40 text-amber-300 font-bold'
+        } flex flex-col items-center justify-center text-center">
+          <span class="text-[8px] uppercase tracking-tighter -mb-1 opacity-80">${ball.col}</span>
+          <span class="text-xs font-black leading-none">${ball.id}</span>
+        </div>
+      `).join('');
+    }
+
+    function showWinnerOverlay(teamName, ticketCode, prize) {
+      const overlay = document.getElementById('tvWinnerOverlay');
+      if (teamName) document.getElementById('tvWinnerTeamName').textContent = teamName;
+      if (ticketCode) document.getElementById('tvWinnerTicketCode').textContent = `Ticket Code: ${ticketCode} Verified`;
+      if (prize) document.getElementById('tvWinnerPrizeBadge').textContent = `🍺 ${prize.toUpperCase()} 🍺`;
+      overlay.classList.remove('hidden');
+      launchTvConfetti();
+    }
+
+    function hideWinnerOverlay() {
+      document.getElementById('tvWinnerOverlay').classList.add('hidden');
+    }
+
+    function launchTvConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 150,
+          spread: 90,
+          origin: { y: 0.5 }
+        });
+        setTimeout(() => {
+          confetti({ particleCount: 100, angle: 60, spread: 60, origin: { x: 0 } });
+          confetti({ particleCount: 100, angle: 120, spread: 60, origin: { x: 1 } });
+        }, 300);
+      }
+    }
+
+    function initMobileQr() {
+      const container = document.getElementById('tvQrCodeContainer');
+      if (!container || typeof QRCode === 'undefined') return;
+      container.innerHTML = '';
+
+      const targetUrl = window.location.origin + window.location.pathname.replace('tv.html', 'index.html') + `?mode=player&set=${tvActiveSet ? tvActiveSet.id : 1}`;
+      new QRCode(container, {
+        text: targetUrl,
+        width: 48,
+        height: 48,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
+      });
+    }
+  </script>
+</body>
+</html>

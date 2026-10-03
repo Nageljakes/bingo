@@ -14,8 +14,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Rotating Pub Bingo Question / Music Bank (10 Sets) -->
+  <!-- Venues, Rotating Sets & Mobile QR -->
+  <script src="venues.js"></script>
   <script src="bingoSets.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <script>
     tailwind.config = {
@@ -272,11 +274,31 @@
       <!-- Action Deck: Set Selector + Audio FX + Big Screen Toggle -->
       <div class="flex flex-wrap items-center justify-between md:justify-end gap-1.5 sm:gap-2">
         
+        <!-- Desktop Gig Venue Profile Selector -->
+        <div class="relative hidden md:inline-block">
+          <button id="venueSelectorBtn" onclick="toggleVenueDropdown(event)" class="px-3 py-1.5 bg-gray-900/90 hover:bg-gray-800 text-amber-300 font-bold rounded-xl text-xs border border-amber-500/40 flex items-center gap-2 shadow-sm transition active:scale-95" title="Switch Gig Venue Profile">
+            <i class="fa-solid fa-store text-amber-400"></i>
+            <span id="headerVenueBadgeText" class="truncate max-w-[130px]">Beerbox Midrand</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+          </button>
+          
+          <!-- Venue Dropdown Menu -->
+          <div id="venueDropdownMenu" class="hidden absolute left-0 md:right-0 md:left-auto mt-1.5 w-72 bg-gray-900/98 backdrop-blur-md border border-amber-500/30 rounded-xl shadow-2xl p-1.5 z-50">
+            <div class="px-2.5 py-1 text-[10px] font-extrabold tracking-wider uppercase text-amber-400/80 border-b border-gray-800 flex justify-between items-center mb-1">
+              <span>Gig Venue Profile</span>
+              <button onclick="openVenueModal()" class="text-amber-400 hover:underline text-[9px]">+ Edit / Add</button>
+            </div>
+            <div id="venueListOptions" class="space-y-0.5">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
         <!-- Desktop Set Dropdown Selector -->
         <div class="relative hidden md:inline-block">
           <button id="setSelectorBtn" onclick="toggleSetDropdown(event)" class="px-3 py-1.5 bg-gray-900/90 hover:bg-gray-800 text-amber-300 font-bold rounded-xl text-xs border border-amber-500/40 flex items-center gap-2 shadow-sm transition active:scale-95">
             <i class="fa-solid fa-layer-group text-amber-400"></i>
-            <span id="headerSetBadgeText" class="truncate max-w-[140px]">Set 1: Classic 75</span>
+            <span id="headerSetBadgeText" class="truncate max-w-[130px]">Set 1: Classic 75</span>
             <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
           </button>
           
@@ -315,10 +337,22 @@
           </button>
         </div>
 
-        <!-- Big Screen TV Mode Button -->
-        <button onclick="toggleBigScreenMode()" class="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-gray-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 transition" title="Switch to Fullscreen Pub TV / Projector Display">
+        <!-- Launch Detached HDMI TV Window Button -->
+        <button onclick="launchPubTvWindow()" class="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-gray-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 transition" title="Launch Detached HDMI TV Window for Bar Screens/Projector">
+          <i class="fa-solid fa-up-right-from-square text-xs"></i>
+          <span>HDMI TV</span>
+        </button>
+
+        <!-- Big Screen TV Mode Button (In-Tab) -->
+        <button onclick="toggleBigScreenMode()" class="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-gray-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 transition" title="Switch Current Tab to Fullscreen TV Mode">
           <i class="fa-solid fa-tv text-xs"></i>
-          <span class="hidden sm:inline">TV MODE</span>
+          <span class="hidden sm:inline">TV TAB</span>
+        </button>
+
+        <!-- Mobile QR Code Button -->
+        <button onclick="openMobileQrModal()" class="hidden md:flex px-2.5 sm:px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-amber-300 font-bold rounded-xl text-xs border border-gray-700 items-center gap-1.5 transition active:scale-95" title="Show Mobile Player QR Code">
+          <i class="fa-solid fa-qrcode text-amber-400"></i>
+          <span>QR CODE</span>
         </button>
 
         <!-- A4 Print Center Button -->
@@ -448,6 +482,42 @@
 
           </div>
 
+          <!-- DJ Music Cue & Track Reveal Deck (Visible for Music/Themed Sets) -->
+          <div id="djMusicCueDeck" class="hidden my-2 p-2.5 rounded-2xl bg-gray-950/85 border border-amber-500/30 text-xs">
+            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+              <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-headphones"></i> DJ TRACK CONTROLS
+              </span>
+              <label class="flex items-center gap-1.5 text-[11px] text-gray-300 cursor-pointer font-bold select-none bg-gray-900 px-2 py-0.5 rounded-lg border border-gray-800">
+                <input type="checkbox" id="musicGuessingModeToggle" onchange="toggleMusicGuessingMode(this.checked)" class="rounded border-gray-700 text-amber-500 focus:ring-0">
+                <span>Guessing Mode (Hide Title on Pub TV)</span>
+              </label>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-900">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button onclick="copyCurrentTrackToClipboard()" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 text-amber-300 border border-gray-800 rounded-lg text-xs font-bold flex items-center gap-1 transition active:scale-95" title="Copy Artist & Song to Paste into VirtualDJ / Serato">
+                  <i class="fa-solid fa-copy text-[10px]"></i>
+                  <span id="copyTrackBtnText">Copy Song</span>
+                </button>
+                <a id="spotifySearchLink" href="#" target="_blank" class="px-2 py-1 bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/60 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                  <i class="fa-brands fa-spotify text-[11px]"></i>
+                  <span>Spotify</span>
+                </a>
+                <a id="youtubeSearchLink" href="#" target="_blank" class="px-2 py-1 bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800/60 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                  <i class="fa-brands fa-youtube text-[11px]"></i>
+                  <span>YouTube</span>
+                </a>
+              </div>
+
+              <!-- Big Reveal Button for Pub TV -->
+              <button id="revealTrackBtn" onclick="revealCurrentTrackOnTv()" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95 animate-pulse">
+                <i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i>
+                <span>REVEAL ON PUB TV</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Caller Action Deck: Draw Next + Auto-Call + Reset -->
           <div class="border-t border-gray-800/80 pt-3 mt-2 flex flex-wrap items-center justify-between gap-2">
             
@@ -524,6 +594,18 @@
                 </p>
               </div>
             </div>
+
+            <!-- Progressive 3-Tier Pub Round Progression -->
+            <div class="mt-2 pt-2 border-t border-gray-800/80 flex items-center justify-between gap-2">
+              <div>
+                <span class="text-[9px] uppercase tracking-wider text-gray-500 font-extrabold block">Pub Progression:</span>
+                <span id="progressionStageBadge" class="text-xs font-black text-amber-300">Stage 1: Any 1 Line</span>
+              </div>
+              <button id="advanceStageBtn" onclick="advanceProgressionStage()" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-extrabold flex items-center gap-1 transition active:scale-95" title="Advance to Next Round Stage without Clearing Balls">
+                <span id="advanceStageBtnText">Advance to 2 Lines</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
           </div>
 
           <!-- Instant Card Verifier Tool -->
@@ -554,6 +636,17 @@
             <!-- Verification Feedback Box -->
             <div id="verifierFeedback" class="hidden mt-2 p-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
               <!-- Content inserted by JS -->
+            </div>
+
+            <!-- Broadcast Winner to Pub TV Controls -->
+            <div id="verifierBroadcastDeck" class="hidden mt-2 pt-2 border-t border-gray-800/80 flex items-center justify-between gap-2">
+              <button onclick="broadcastVerifiedWinnerToTv()" class="flex-1 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-gray-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 active:scale-95">
+                <i class="fa-solid fa-satellite-dish"></i>
+                <span>BROADCAST WINNER TO PUB TV</span>
+              </button>
+              <button onclick="dismissWinnerFromTv()" class="px-2.5 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded-xl text-xs font-bold border border-gray-800 transition" title="Clear Winner Overlay from TV">
+                Dismiss
+              </button>
             </div>
           </div>
 
@@ -1025,6 +1118,32 @@
   </div>
 
   <!-- ========================================================
+       MODAL 5: MOBILE PLAYER QR CODE MODAL
+       ======================================================== -->
+  <div id="mobileQrModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-panel rounded-3xl border-2 border-amber-500/40 w-full max-w-sm p-6 text-center shadow-2xl bg-gray-950">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 mx-auto flex items-center justify-center text-2xl mb-3">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <h3 class="text-xl font-black font-display text-white uppercase tracking-tight">SCAN TO PLAY ON MOBILE</h3>
+      <p class="text-xs text-gray-400 mt-1 mb-4">No app download needed. Scan and daub live on your phone!</p>
+      
+      <div class="w-48 h-48 bg-white rounded-2xl p-2 mx-auto flex items-center justify-center shadow-lg" id="modalQrCodeContainer">
+        <!-- Rendered by QRCode.js -->
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center text-xs">
+        <button onclick="copyPlayerLink()" class="text-amber-400 hover:underline font-bold flex items-center gap-1">
+          <i class="fa-solid fa-link text-[10px]"></i> <span id="copyPlayerLinkText">Copy Link</span>
+        </button>
+        <button onclick="closeMobileQrModal()" class="px-3 py-1.5 bg-gray-900 text-gray-200 rounded-xl hover:bg-gray-800 font-bold">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
        APPLICATION JAVASCRIPT ENGINE
        ======================================================== -->
   <script>
@@ -1167,6 +1286,7 @@
     // ==========================================================
     // APP STATE & STORAGE
     // ==========================================================
+    let broadcastChannel = null;
     let currentSetIndex = 0;
     let calledBallIds = new Set();
     let callHistory = [];
@@ -1174,6 +1294,13 @@
     let autoCallerTimer = null;
     let autoCallInterval = 10;
     let isBigScreenActive = false;
+
+    // DJ Gig & Music Bingo State
+    let currentVenue = (window.BINGO_VENUES && window.BINGO_VENUES.length > 0) ? window.BINGO_VENUES[0] : null;
+    let isMusicGuessingMode = false;
+    let currentDrawnItem = null;
+    let currentProgressionStage = 1; // 1: 1 Line, 2: 2 Lines, 3: Full House
+    let lastVerifiedWinner = null;
 
     // Player Card State
     let currentDauberColor = '#F59E0B';
@@ -1196,7 +1323,10 @@
     // INITIALIZATION & LOCALSTORAGE
     // ==========================================================
     document.addEventListener('DOMContentLoaded', () => {
+      initBroadcastChannel();
       loadStorageData();
+      checkUrlParameters();
+      initVenueSelector();
       initSetSelector();
       renderMasterBoard();
       renderMiniWinningPattern();
@@ -1212,6 +1342,49 @@
         }
       });
     });
+
+    function initBroadcastChannel() {
+      if ('BroadcastChannel' in window) {
+        broadcastChannel = new BroadcastChannel('bingo_channel');
+      }
+    }
+
+    function broadcastTv(payload) {
+      try {
+        if (broadcastChannel) broadcastChannel.postMessage(payload);
+        localStorage.setItem('bb_bingo_broadcast_payload', JSON.stringify(payload));
+      } catch (e) {
+        console.warn('Broadcast error:', e);
+      }
+    }
+
+    function launchPubTvWindow() {
+      window.open('tv.html', 'bingo_pub_tv', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
+    }
+
+    function checkUrlParameters() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'player') {
+          switchAppMode('player');
+        }
+        if (urlParams.get('set')) {
+          const setParam = parseInt(urlParams.get('set'), 10);
+          const foundIdx = window.BINGO_SETS.findIndex(s => s.id === setParam);
+          if (foundIdx !== -1) currentSetIndex = foundIdx;
+        }
+        if (urlParams.get('venue') && window.BINGO_VENUES) {
+          const vParam = urlParams.get('venue');
+          const foundV = window.BINGO_VENUES.find(v => v.id === vParam);
+          if (foundV) {
+            currentVenue = foundV;
+            venueConfig.title = foundV.venueName;
+            venueConfig.branch = foundV.branch;
+            venueConfig.dj = foundV.djName;
+          }
+        }
+      } catch (e) {}
+    }
 
     function loadStorageData() {
       try {
@@ -1285,6 +1458,59 @@
     }
 
     // ==========================================================
+    // VENUE GIG PROFILE ENGINE
+    // ==========================================================
+    function initVenueSelector() {
+      const container = document.getElementById('venueListOptions');
+      if (!container || !window.BINGO_VENUES) return;
+      container.innerHTML = '';
+
+      window.BINGO_VENUES.forEach(v => {
+        const item = document.createElement('button');
+        item.onclick = (e) => {
+          e.stopPropagation();
+          changeActiveVenue(v.id);
+          toggleVenueDropdown();
+        };
+        const isActive = currentVenue && currentVenue.id === v.id;
+        item.className = `w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs transition ${
+          isActive ? 'bg-amber-500 text-gray-950 font-black' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+        }`;
+        item.innerHTML = `
+          <div class="truncate">
+            <div class="font-bold truncate">${v.shortName}</div>
+            <div class="text-[9px] opacity-75">${v.branch}</div>
+          </div>
+          <span class="text-[8px] px-1 py-0.5 rounded uppercase ${isActive ? 'bg-black/20 text-black' : 'bg-gray-800 text-amber-300'} font-bold">${v.branch}</span>
+        `;
+        container.appendChild(item);
+      });
+
+      updateVenueDisplay();
+    }
+
+    function toggleVenueDropdown(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('venueDropdownMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    function changeActiveVenue(venueId) {
+      const found = window.BINGO_VENUES.find(v => v.id === venueId);
+      if (found) {
+        currentVenue = found;
+        venueConfig.title = found.venueName;
+        venueConfig.branch = found.branch;
+        venueConfig.dj = found.djName;
+        saveStorageData();
+        updateVenueDisplay();
+        initVenueSelector();
+        broadcastTv({ type: 'CHANGE_VENUE', venue: currentVenue });
+        playSFX('pop');
+      }
+    }
+
+    // ==========================================================
     // SET SELECTOR ENGINE (10 ROTATING SETS)
     // ==========================================================
     function initSetSelector() {
@@ -1324,10 +1550,16 @@
     }
 
     document.addEventListener('click', (e) => {
-      const menu = document.getElementById('setDropdownMenu');
-      const btn = document.getElementById('setSelectorBtn');
-      if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.classList.add('hidden');
+      const setMenu = document.getElementById('setDropdownMenu');
+      const setBtn = document.getElementById('setSelectorBtn');
+      if (setMenu && !setMenu.classList.contains('hidden') && !setMenu.contains(e.target) && !setBtn.contains(e.target)) {
+        setMenu.classList.add('hidden');
+      }
+
+      const venueMenu = document.getElementById('venueDropdownMenu');
+      const venueBtn = document.getElementById('venueSelectorBtn');
+      if (venueMenu && !venueMenu.classList.contains('hidden') && !venueMenu.contains(e.target) && !venueBtn.contains(e.target)) {
+        venueMenu.classList.add('hidden');
       }
     });
 
@@ -1339,6 +1571,7 @@
       resetGameState();
       generateFreshPlayerCard(false);
       updateSetBadges();
+      broadcastTv({ type: 'CHANGE_SET', setIndex: index });
       playSFX('pop');
     }
 
@@ -1400,6 +1633,61 @@
       if (isPlayerAutoDaub) {
         checkAndApplyAutoDaub(pick.id);
       }
+
+      // Set current drawn item & DJ Music Cue Deck
+      currentDrawnItem = pick;
+      updateDjMusicCueDeck(pick);
+
+      // Broadcast to HDMI Pub TV window
+      broadcastTv({
+        type: 'DRAW_BALL',
+        item: pick,
+        isGuessingMode: isMusicGuessingMode && (set.type.startsWith('music') || set.type.startsWith('trivia'))
+      });
+    }
+
+    function toggleMusicGuessingMode(val) {
+      isMusicGuessingMode = val;
+    }
+
+    function updateDjMusicCueDeck(item) {
+      const cueDeck = document.getElementById('djMusicCueDeck');
+      const set = getCurrentSet();
+      const isThemed = set.type.startsWith('music') || set.type.startsWith('trivia');
+      
+      if (!cueDeck) return;
+      if (!isThemed || !item) {
+        cueDeck.classList.add('hidden');
+        return;
+      }
+      
+      cueDeck.classList.remove('hidden');
+
+      const query = encodeURIComponent(`${item.artist || ''} ${item.title || ''}`.trim());
+      const spotifyLink = document.getElementById('spotifySearchLink');
+      const ytLink = document.getElementById('youtubeSearchLink');
+      if (spotifyLink) spotifyLink.href = `https://open.spotify.com/search/${query}`;
+      if (ytLink) ytLink.href = `https://www.youtube.com/results?search_query=${query}+audio`;
+    }
+
+    function copyCurrentTrackToClipboard() {
+      if (!currentDrawnItem) return;
+      const text = `${currentDrawnItem.artist || ''} - ${currentDrawnItem.title || ''}`.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const btnText = document.getElementById('copyTrackBtnText');
+        if (btnText) {
+          btnText.textContent = 'Copied!';
+          setTimeout(() => { btnText.textContent = 'Copy Song'; }, 1500);
+        }
+        playSFX('pop');
+      });
+    }
+
+    function revealCurrentTrackOnTv() {
+      if (!currentDrawnItem) return;
+      broadcastTv({ type: 'REVEAL_TRACK', item: currentDrawnItem });
+      playSFX('correct');
+      launchConfetti();
     }
 
     function updateDrawnBallUI(item) {
@@ -1626,9 +1914,25 @@
       if (rhyme) rhyme.textContent = 'Ready for Next Game';
       if (sub) sub.textContent = 'Tap Draw Ball or spacebar to begin.';
 
+      // Reset DJ Cue Deck & Progression
+      currentDrawnItem = null;
+      updateDjMusicCueDeck(null);
+      currentProgressionStage = 1;
+      const progBadge = document.getElementById('progressionStageBadge');
+      if (progBadge) progBadge.textContent = 'Stage 1: Any 1 Line';
+      const advBtn = document.getElementById('advanceStageBtn');
+      if (advBtn) {
+        advBtn.disabled = false;
+        advBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+      const advBtnText = document.getElementById('advanceStageBtnText');
+      if (advBtnText) advBtnText.textContent = 'Advance to 2 Lines';
+
       // Reset Player Daubs
       playerDaubedCells.clear();
       renderPlayerCard();
+      dismissWinnerFromTv();
+      broadcastTv({ type: 'RESET_GAME' });
       playSFX('drumroll');
     }
 
@@ -1702,7 +2006,36 @@
       if (tvBadge) tvBadge.textContent = pat.name;
       if (pBanner) pBanner.textContent = pat.name;
 
+      broadcastTv({
+        type: 'CHANGE_PATTERN',
+        patternName: pat.name,
+        prize: pat.prize,
+        stage: `Stage ${currentProgressionStage} of 3`
+      });
+
       checkPlayerBingoProgress();
+    }
+
+    function advanceProgressionStage() {
+      if (currentProgressionStage === 1) {
+        currentProgressionStage = 2;
+        setWinningPattern('two_lines');
+        document.getElementById('patternSelector').value = 'two_lines';
+        document.getElementById('progressionStageBadge').textContent = 'Stage 2: Any 2 Lines';
+        document.getElementById('advanceStageBtnText').textContent = 'Advance to Full House';
+        playSFX('correct');
+      } else if (currentProgressionStage === 2) {
+        currentProgressionStage = 3;
+        setWinningPattern('blackout');
+        document.getElementById('patternSelector').value = 'blackout';
+        document.getElementById('progressionStageBadge').textContent = 'Stage 3: Full House / Blackout';
+        document.getElementById('advanceStageBtnText').textContent = 'Round Complete!';
+        const advBtn = document.getElementById('advanceStageBtn');
+        advBtn.disabled = true;
+        advBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        playSFX('correct');
+        launchConfetti();
+      }
     }
 
     function renderMiniWinningPattern() {
@@ -1989,24 +2322,98 @@
       feedback.classList.remove('hidden');
 
       // Check current player card if matches code or simulate check
+      const broadcastDeck = document.getElementById('verifierBroadcastDeck');
       if (code === playerTicketId.toUpperCase() || code.replace('#', '') === playerTicketId.replace('#', '')) {
         const hasWon = evaluateBingoWin(playerDaubedCells, activePattern);
         if (hasWon) {
           playSFX('correct');
           launchConfetti();
+          lastVerifiedWinner = {
+            teamName: `TABLE CLAIM • Ticket ${playerTicketId}`,
+            ticketCode: playerTicketId
+          };
+          if (broadcastDeck) broadcastDeck.classList.remove('hidden');
           feedback.className = 'mt-2 p-2.5 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-2';
-          feedback.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> VALID BINGO! Ticket ${playerTicketId} has verified ${PATTERNS[activePattern]?.name}!`;
+          feedback.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> VALID BINGO! Ticket ${playerTicketId} has verified ${PATTERNS[activePattern]?.name}! Ready to broadcast.`;
         } else {
           playSFX('wrong');
+          if (broadcastDeck) broadcastDeck.classList.add('hidden');
           feedback.className = 'mt-2 p-2.5 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-2';
           feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base"></i> BOGUS BINGO! Ticket ${playerTicketId} has NOT completed ${PATTERNS[activePattern]?.name}!`;
         }
       } else {
-        // Universal verifier: check if random seed matching code is valid
+        // Universal verifier
         playSFX('correct');
+        lastVerifiedWinner = {
+          teamName: `TABLE WINNER • Ticket ${code}`,
+          ticketCode: code
+        };
+        if (broadcastDeck) broadcastDeck.classList.remove('hidden');
         feedback.className = 'mt-2 p-2.5 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-2';
         feedback.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> VALID BINGO! Ticket ${code} meets winning criteria against called balls!`;
       }
+    }
+
+    function broadcastVerifiedWinnerToTv() {
+      if (!lastVerifiedWinner) return;
+      const prize = currentProgressionStage === 1
+        ? (currentVenue?.prizes?.stage1 || 'Drink Prize')
+        : (currentProgressionStage === 2
+          ? (currentVenue?.prizes?.stage2 || 'Pitcher of Beer')
+          : (currentVenue?.prizes?.stage3 || 'R500 Bar Tab & Trophy'));
+
+      broadcastTv({
+        type: 'BROADCAST_WINNER',
+        teamName: lastVerifiedWinner.teamName,
+        ticketCode: lastVerifiedWinner.ticketCode,
+        prize: prize
+      });
+      playSFX('correct');
+      launchConfetti();
+    }
+
+    function dismissWinnerFromTv() {
+      broadcastTv({ type: 'DISMISS_WINNER' });
+      const deck = document.getElementById('verifierBroadcastDeck');
+      if (deck) deck.classList.add('hidden');
+    }
+
+    function openMobileQrModal() {
+      const modal = document.getElementById('mobileQrModal');
+      const container = document.getElementById('modalQrCodeContainer');
+      if (!modal || !container) return;
+      container.innerHTML = '';
+
+      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
+      
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(container, {
+          text: targetUrl,
+          width: 180,
+          height: 180,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeMobileQrModal() {
+      const modal = document.getElementById('mobileQrModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function copyPlayerLink() {
+      const targetUrl = window.location.origin + window.location.pathname + `?mode=player&set=${getCurrentSet().id}&venue=${currentVenue ? currentVenue.id : 'beerbox_midrand'}`;
+      navigator.clipboard.writeText(targetUrl).then(() => {
+        const textEl = document.getElementById('copyPlayerLinkText');
+        if (textEl) {
+          textEl.textContent = 'Copied!';
+          setTimeout(() => { textEl.textContent = 'Copy Link'; }, 1500);
+        }
+      });
     }
 
     // ==========================================================
